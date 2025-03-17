@@ -1,0 +1,322 @@
+@page "/dashboard"
+@using System.Net.Http.Json
+@inject HttpClient Http
+
+<PageTitle>Travel Destinations Dashboard</PageTitle>
+
+<div class="destinations-wrapper">
+    <header class="destinations-header">
+        <h1>Explore the World</h1>
+        <div class="header-decoration"></div>
+    </header>
+
+    <main class="destinations-content">
+        @if (isLoading)
+        {
+            <div class="loading-container">
+                <div class="spinner"></div>
+                <p>Fetching destinations...</p>
+            </div>
+        }
+        else if (destinations.Any())
+        {
+            <div class="destinations-circle">
+                @foreach (var destination in destinations)
+                {
+                    <div class="destination-card" style="background: @GetDestinationColor(destination.Name);">
+                        <div class="card-content">
+                            <h2>@destination.Name</h2>
+                            <p class="rating">⭐ @destination.Rating/5</p>
+                            <p class="description">@destination.Description</p>
+                            <div class="details">
+                                <span>🕒 @destination.TravelTime days</span>
+                                <span>💰 @destination.Cost USD</span>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="no-data">
+                <p>No destinations available</p>
+                <button @onclick="RefreshData">Retry</button>
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="error-notification">
+                <span>@errorMessage</span>
+                <button @onclick="() => errorMessage = ''">✖</button>
+            </div>
+        }
+    </main>
+</div>
+
+<style>
+    .destinations-wrapper {
+        min-height: 100vh;
+        background: linear-gradient(120deg, #6b48ff 0%, #ff6b6b 100%);
+        padding: 2.5rem 1.5rem;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        overflow-x: hidden;
+    }
+
+    .destinations-header {
+        text-align: center;
+        margin-bottom: 3rem;
+        position: relative;
+    }
+
+    .destinations-header h1 {
+        color: #ffffff;
+        font-size: 3rem;
+        font-weight: 900;
+        margin: 0;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+    }
+
+    .header-decoration {
+        width: 100px;
+        height: 4px;
+        background: #ffffff;
+        margin: 0.5rem auto;
+        border-radius: 2px;
+        opacity: 0.7;
+    }
+
+    .destinations-content {
+        position: relative;
+        min-height: 70vh;
+    }
+
+    .destinations-circle {
+        position: relative;
+        width: 100%;
+        max-width: 1200px;
+        margin: 0 auto;
+        height: 600px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .destination-card {
+        position: absolute;
+        width: 200px;
+        height: 200px;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+        transition: transform 0.5s ease, opacity 0.5s ease;
+        opacity: 0.9;
+        overflow: hidden;
+    }
+
+    .destination-card:hover {
+        transform: scale(1.1);
+        opacity: 1;
+        z-index: 1;
+    }
+
+    .card-content {
+        text-align: center;
+        color: #ffffff;
+        padding: 1rem;
+    }
+
+    .card-content h2 {
+        font-size: 1.3rem;
+        margin: 0 0 0.5rem 0;
+        font-weight: 700;
+    }
+
+    .rating {
+        font-size: 1rem;
+        margin-bottom: 0.3rem;
+    }
+
+    .description {
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+        line-height: 1.2;
+    }
+
+    .details {
+        font-size: 0.85rem;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .details span {
+        display: flex;
+        align-items: center;
+        gap: 0.2rem;
+    }
+
+    .loading-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        color: #ffffff;
+        gap: 1rem;
+        margin: 4rem auto;
+    }
+
+    .spinner {
+        width: 50px;
+        height: 50px;
+        border: 5px solid rgba(255, 255, 255, 0.3);
+        border-top: 5px solid #ffffff;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    .no-data {
+        text-align: center;
+        color: #ffffff;
+        padding: 2rem;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 15px;
+        margin: 2rem auto;
+        max-width: 400px;
+    }
+
+    .no-data button {
+        background: #ffffff;
+        color: #6b48ff;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: 600;
+    }
+
+    .no-data button:hover {
+        background: #e0e0e0;
+    }
+
+    .error-notification {
+        position: fixed;
+        top: 1.5rem;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #ff6b6b;
+        color: #ffffff;
+        padding: 0.8rem 1.5rem;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        font-weight: 500;
+    }
+
+    .error-notification button {
+        background: none;
+        border: none;
+        color: #ffffff;
+        font-size: 1.2rem;
+        cursor: pointer;
+        padding: 0;
+        font-weight: 700;
+    }
+
+    @@keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    @* Positioning cards in a circular pattern *@
+    @{
+        var angle = 0.0;
+        var radius = 250;
+        var index = 0;
+    }
+    @foreach (var destination in destinations)
+    {
+        var rad = angle * Math.PI / 180;
+        var x = radius * Math.Cos(rad);
+        var y = radius * Math.Sin(rad);
+        <style>
+            .destination-card:nth-child(@(index + 1)) {
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%) translate(@x px, @y px);
+            }
+        </style>
+        angle += 72; // 360° / 5 destinations
+        index++;
+    }
+</style>
+
+@code {
+    private List<Destination> destinations = new();
+    private string errorMessage = "";
+    private bool isLoading = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDestinations();
+    }
+
+    private async Task LoadDestinations()
+    {
+        isLoading = true;
+        errorMessage = "";
+        destinations.Clear();
+        StateHasChanged();
+
+        try
+        {
+            // Simulating API call with dummy data
+            await Task.Delay(1000); // Simulate network delay
+            destinations.AddRange(new[]
+            {
+                new Destination { Name = "Paris", Rating = 4.8, Description = "Romantic city of lights", TravelTime = 7, Cost = 1200 },
+                new Destination { Name = "Tokyo", Rating = 4.6, Description = "Futuristic urban adventure", TravelTime = 10, Cost = 1500 },
+                new Destination { Name = "New York", Rating = 4.7, Description = "City that never sleeps", TravelTime = 8, Cost = 1300 },
+                new Destination { Name = "Sydney", Rating = 4.5, Description = "Beaches and opera house", TravelTime = 9, Cost = 1400 },
+                new Destination { Name = "Rome", Rating = 4.9, Description = "Ancient history awaits", TravelTime = 6, Cost = 1100 }
+            });
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading destinations: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private string GetDestinationColor(string name) => name switch
+    {
+        "Paris" => "#ff6b6b",
+        "Tokyo" => "#6b48ff",
+        "New York" => "#ff9f43",
+        "Sydney" => "#48dbfb",
+        "Rome" => "#ffd700",
+        _ => "#6b48ff"
+    };
+
+    private void RefreshData()
+    {
+        LoadDestinations();
+    }
+
+    private class Destination
+    {
+        public string Name { get; set; } = "";
+        public double Rating { get; set; }
+        public string Description { get; set; } = "";
+        public int TravelTime { get; set; }
+        public int Cost { get; set; }
+    }
+}

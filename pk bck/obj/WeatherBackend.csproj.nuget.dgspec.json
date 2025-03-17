@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "/Users/praveenkumar.s/Important/final climate/pk bck/WeatherBackend.csproj": {}
+    "/Users/praveenkumar.s/Desktop/final climate/pk bck/WeatherBackend.csproj": {}
   },
   "projects": {
-    "/Users/praveenkumar.s/Important/final climate/pk bck/WeatherBackend.csproj": {
+    "/Users/praveenkumar.s/Desktop/final climate/pk bck/WeatherBackend.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/praveenkumar.s/Important/final climate/pk bck/WeatherBackend.csproj",
+        "projectUniqueName": "/Users/praveenkumar.s/Desktop/final climate/pk bck/WeatherBackend.csproj",
         "projectName": "WeatherBackend",
-        "projectPath": "/Users/praveenkumar.s/Important/final climate/pk bck/WeatherBackend.csproj",
+        "projectPath": "/Users/praveenkumar.s/Desktop/final climate/pk bck/WeatherBackend.csproj",
         "packagesPath": "/Users/praveenkumar.s/.nuget/packages/",
-        "outputPath": "/Users/praveenkumar.s/Important/final climate/pk bck/obj/",
+        "outputPath": "/Users/praveenkumar.s/Desktop/final climate/pk bck/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/Users/praveenkumar.s/.nuget/NuGet/NuGet.Config"

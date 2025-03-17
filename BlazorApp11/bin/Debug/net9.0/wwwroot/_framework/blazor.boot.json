@@ -1,7 +1,7 @@
 {
   "mainAssemblyName": "BlazorApp11",
   "resources": {
-    "hash": "sha256-k3EVrp3iApIf8TRe59oa/8SAhsTR/tTne2ue0qzglo0=",
+    "hash": "sha256-HTJAEWJNDNKKAK+N1UktlNW4chNu6zKXbS2WCinh7QA=",
     "fingerprinting": {
       "Blazored.LocalStorage.12n6dz54qr.wasm": "Blazored.LocalStorage.wasm",
       "DnsClient.wommcjgqe2.wasm": "DnsClient.wasm",
@@ -225,8 +225,8 @@
       "icudt_CJK.tjcz0u77k5.dat": "icudt_CJK.dat",
       "icudt_EFIGS.tptq2av103.dat": "icudt_EFIGS.dat",
       "icudt_no_CJK.lfu7j35m59.dat": "icudt_no_CJK.dat",
-      "BlazorApp11.efduvlrw07.wasm": "BlazorApp11.wasm",
-      "BlazorApp11.q1651t5i7p.pdb": "BlazorApp11.pdb"
+      "BlazorApp11.64ul5aacnt.wasm": "BlazorApp11.wasm",
+      "BlazorApp11.auputyl4ae.pdb": "BlazorApp11.pdb"
     },
     "jsModuleNative": {
       "dotnet.native.8bti36lthm.js": "sha256-HFADmT26AarHu4tMjFaTPxINmQjBJGtdPN+CKjtNMFE="
@@ -460,10 +460,10 @@
       "WindowsBase.tuf34ieu7y.wasm": "sha256-Bd+l972cOS1eVeLzrQNlgD6LPWV1QXBSzJhv8Tx1WGI=",
       "mscorlib.5q5u0swn6q.wasm": "sha256-g9cI1sECkF7bxMqOSB+W0a4utdDsqTrqZzyiAEeA65g=",
       "netstandard.w8gk1pigg1.wasm": "sha256-QFR5QNPfvyZTexW3IA/AFx6ZmIF/TecvOUsSK4gM4po=",
-      "BlazorApp11.efduvlrw07.wasm": "sha256-ekKKasvdL3tlyLl9AtO2Myc0Gof8vx6uAaSqMEJTOLE="
+      "BlazorApp11.64ul5aacnt.wasm": "sha256-trjG83o2XNlkARu6jO5ncsmJSvOg325YoSKnrcMvnMM="
     },
     "pdb": {
-      "BlazorApp11.q1651t5i7p.pdb": "sha256-3rKomWqka04s9Y+OcYrKQQJLtEomG/lLiWdruuy8M9g="
+      "BlazorApp11.auputyl4ae.pdb": "sha256-UjPuMXskEb0+Jyu9LfYBJ32VpvCujLojf6zqklnFbDU="
     }
   },
   "cacheBootResources": true,

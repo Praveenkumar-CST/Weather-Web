@@ -245,3 +245,4 @@ C:/Users/ranji/OneDrive/Desktop/WeatherBackend/WeatherBackend/bin/Debug/net9.0/S
 /Users/praveenkumar.s/Important/final climate/pk bck/obj/Debug/net9.0/WeatherBackend.pdb
 /Users/praveenkumar.s/Important/final climate/pk bck/obj/Debug/net9.0/WeatherBackend.genruntimeconfig.cache
 /Users/praveenkumar.s/Important/final climate/pk bck/obj/Debug/net9.0/ref/WeatherBackend.dll
+/Users/praveenkumar.s/Desktop/final climate/pk bck/obj/Debug/net9.0/WeatherBackend.sourcelink.json

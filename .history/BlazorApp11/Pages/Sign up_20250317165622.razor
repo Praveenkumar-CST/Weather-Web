@@ -1,0 +1,130 @@
+@page "/signup"
+@using Supabase
+@inject NavigationManager NavManager
+
+<h3 class="title">Sign Up</h3>
+
+@if (!string.IsNullOrEmpty(Message))
+{
+    <p class="message">@Message</p>
+}
+
+<div class="form-container">
+    <input @bind="Email" placeholder="Enter email" class="input-box" />
+    <input @bind="Password" type="password" placeholder="Enter password" class="input-box" />
+    <button @onclick="SignUp" class="submit-button">Sign Up</button>
+</div>
+
+@code {
+    private string Email { get; set; } = "";
+    private string Password { get; set; } = "";
+    private string Message { get; set; } = "";
+
+    private async Task SignUp()
+    {
+        if (string.IsNullOrEmpty(Email) || !IsValidEmail(Email))
+        {
+            Message = "Please enter a valid email address.";
+            return;
+        }
+
+        if (Password.Length < 6)
+        {
+            Message = "Password must be at least 6 characters long.";
+            return;
+        }
+
+        var client = new Supabase.Client(
+            "https://uzvvxayexmusumorxjtx.supabase.co", 
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV6dnZ4YXlleG11c3Vtb3J4anR4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkyNjQyMzMsImV4cCI6MjA1NDg0MDIzM30.lPqH-Xv0BYuAr-KprV-HdbDktFBMcqUv5_ZCuEpxQNU",
+            new Supabase.SupabaseOptions { AutoConnectRealtime = true });
+
+        try
+        {
+            var response = await client.Auth.SignUp(Email, Password);
+            if (response != null)
+            {
+                Message = "Signup successful! Redirecting...";
+                NavManager.NavigateTo("/welcome");
+            }
+        }
+        catch (Exception ex)
+        {
+            Message = $"Signup failed: {ex.Message}";
+        }
+    }
+
+    private bool IsValidEmail(string email)
+    {
+        return email.Contains("@") && email.Contains(".");
+    }
+}
+
+<style>
+    /* Page background color */
+    body {
+        background-color: #965108; /* Light background color for the page */
+        font-family: Arial, sans-serif;
+    }
+
+    /* Form container styles */
+    .form-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        max-width: 400px;
+        margin: 0 auto; /* Center the form container */
+        padding: 40px;
+        background-color: rgb(229, 84, 11); /* White background for the form */
+        border-radius: 15px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .title {
+        font-size: 24px;
+        font-weight: bold;
+        margin-bottom: 20px;
+        color: #333;
+        text-align: center;
+    }
+
+    .message {
+        color: red;
+        text-align: center;
+        font-size: 14px;
+        margin-bottom: 15px;
+    }
+
+    .input-box {
+        width: 100%;
+        padding: 12px;
+        border-radius: 8px;
+        border: 1px solid #e47813;
+        margin: 8px 0;
+        font-size: 14px;
+        outline: none;
+    }
+
+    .input-box:focus {
+        border-color: #4CAF50;
+        box-shadow: 0 0 8px rgba(72, 213, 132, 0.5);
+    }
+
+    .submit-button {
+        width: 100%;
+        padding: 14px;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 16px;
+        margin-top: 10px;
+    }
+
+    .submit-button:hover {
+        background-color: #e2861c;
+    }
+</style>

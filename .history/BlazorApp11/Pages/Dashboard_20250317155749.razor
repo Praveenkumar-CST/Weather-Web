@@ -1,0 +1,339 @@
+@page "/dashboard"
+@using System.Net.Http.Json
+@inject HttpClient Http
+
+<PageTitle>Weather Dashboard</PageTitle>
+
+<div class="dashboard-wrapper">
+    <header class="dashboard-header">
+        <h1>Weather Dashboard</h1>
+        <span class="globe-emoji">🌎</span>
+    </header>
+
+    <main class="dashboard-content">
+        @if (isLoading)
+        {
+            <div class="loading-container">
+                <div class="spinner"></div>
+                <p>Loading weather data...</p>
+            </div>
+        }
+        else if (topCitiesWeather.Any())
+        {
+            <div class="weather-grid">
+                @foreach (var city in topCitiesWeather)
+                {
+                    <div class="weather-card">
+                        <div class="card-header" style="background: @GetCityColor(city.City)">
+                            <h2>@city.City</h2>
+                            <span class="temp">@city.Temp.ToString("N1")°C</span>
+                        </div>
+                        <div class="card-body">
+                            <p class="weather-desc">@city.Weather</p>
+                            <div class="weather-stats">
+                                <span>💧 @city.Humidity%</span>
+                                <span>💨 @city.WindSpeed m/s</span>
+                                <span>⏲ @city.Pressure hPa</span>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="empty-state">
+                <p>No weather data available</p>
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="error-alert">
+                <span>⚠️ @errorMessage</span>
+                <button @onclick="() => errorMessage = ''">×</button>
+            </div>
+        }
+    </main>
+</div>
+
+<style>
+    .dashboard-wrapper {
+        min-height: 100vh;
+        background: linear-gradient(145deg, #1abc9c 0%, #3498db 100%);
+        padding: 2rem;
+    }
+
+    .dashboard-header {
+        text-align: center;
+        margin-bottom: 2.5rem;
+        position: relative;
+    }
+
+    .dashboard-header h1 {
+        color: #ffffff;
+        font-size: 2.8rem;
+        font-weight: 800;
+        margin: 0;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .globe-emoji {
+        font-size: 2.2rem;
+        position: absolute;
+        top: -15px;
+        right: 50%;
+        transform: translateX(50%);
+    }
+
+    .weather-grid {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        max-width: 1600px;
+        margin: 0 auto;
+        flex-wrap: nowrap;
+        padding: 0 1rem;
+    }
+
+    .weather-card {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 12px;
+        width: 100%;
+        max-width: 280px;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        transition: transform 0.3s ease;
+        overflow: hidden;
+    }
+
+    .weather-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .card-header {
+        padding: 1rem;
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .card-header h2 {
+        font-size: 1.4rem;
+        margin: 0;
+        font-weight: 600;
+    }
+
+    .temp {
+        font-size: 1.6rem;
+        font-weight: 700;
+    }
+
+    .card-body {
+        padding: 1rem;
+        background: white;
+    }
+
+    .weather-desc {
+        color: #666;
+        font-size: 1rem;
+        text-transform: capitalize;
+        margin: 0 0 0.8rem 0;
+        font-weight: 500;
+    }
+
+    .weather-stats {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.9rem;
+        color: #444;
+        font-weight: 500;
+    }
+
+    .weather-stats span {
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+    .loading-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+        color: #ffffff;
+        margin: 4rem auto;
+    }
+
+    .spinner {
+        width: 48px;
+        height: 48px;
+        border: 5px solid rgba(255, 255, 255, 0.3);
+        border-top: 5px solid #ffffff;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    .empty-state {
+        text-align: center;
+        color: #ffffff;
+        padding: 2rem;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 10px;
+        margin: 2rem auto;
+        max-width: 500px;
+    }
+
+    .error-alert {
+        position: fixed;
+        bottom: 1.5rem;
+        right: 1.5rem;
+        background: #e74c3c;
+        color: #ffffff;
+        padding: 0.8rem 1.5rem;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        font-weight: 500;
+    }
+
+    .error-alert button {
+        background: none;
+        border: none;
+        color: #ffffff;
+        font-size: 1.3rem;
+        cursor: pointer;
+        padding: 0;
+        font-weight: 700;
+    }
+
+    @@keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    @@media (max-width: 1400px) {
+        .weather-card {
+            max-width: 220px;
+        }
+        
+        .card-header h2 {
+            font-size: 1.2rem;
+        }
+        
+        .temp {
+            font-size: 1.4rem;
+        }
+    }
+</style>
+
+@code {
+    private List<TopCityWeather> topCitiesWeather = new();
+    private string errorMessage = "";
+    private bool isLoading = false;
+    private const string ApiKey = "027e44160659370f158944e22e8f23aa";
+    private readonly string[] topCities = { "New York", "London", "Tokyo", "Sydney", "Paris" };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadTopCitiesWeather();
+    }
+
+    private string GetCityColor(string city) => city switch
+    {
+        "New York" => "#e74c3c", // Red
+        "London" => "#3498db",   // Blue
+        "Tokyo" => "#9b59b6",    // Purple
+        "Sydney" => "#f1c40f",   // Yellow
+        "Paris" => "#2ecc71",    // Green
+        _ => "#3498db"          // Default blue
+    };
+
+    private async Task LoadTopCitiesWeather()
+    {
+        isLoading = true;
+        errorMessage = "";
+        topCitiesWeather.Clear();
+        StateHasChanged();
+
+        try
+        {
+            foreach (var city in topCities)
+            {
+                try
+                {
+                    var response = await Http.GetFromJsonAsync<WeatherResponse>(
+                        $"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={ApiKey}&units=metric");
+
+                    if (response != null)
+                    {
+                        topCitiesWeather.Add(new TopCityWeather
+                        {
+                            City = response.name,
+                            Temp = response.main.temp,
+                            Weather = response.weather[0].description,
+                            Humidity = response.main.humidity,
+                            WindSpeed = response.wind.speed,
+                            Pressure = response.main.pressure
+                        });
+                    }
+                }
+                catch (Exception)
+                {
+                    // Skip failed cities silently
+                }
+            }
+
+            if (!topCitiesWeather.Any())
+            {
+                errorMessage = "No weather data could be retrieved";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to load weather data: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private class TopCityWeather
+    {
+        public string City { get; set; } = "";
+        public double Temp { get; set; }
+        public string Weather { get; set; } = "";
+        public int Humidity { get; set; }
+        public double WindSpeed { get; set; }
+        public int Pressure { get; set; }
+    }
+
+    private class WeatherResponse
+    {
+        public string name { get; set; } = "";
+        public MainData main { get; set; } = new();
+        public WeatherData[] weather { get; set; } = Array.Empty<WeatherData>();
+        public WindData wind { get; set; } = new();
+    }
+
+    private class MainData
+    {
+        public double temp { get; set; }
+        public int humidity { get; set; }
+        public int pressure { get; set; }
+    }
+
+    private class WeatherData
+    {
+        public string description { get; set; } = "";
+    }
+
+    private class WindData
+    {
+        public double speed { get; set; }
+    }
+}

@@ -1,0 +1,239 @@
+﻿@page "/favorites"
+@using System.Net.Http.Json
+@using Blazored.LocalStorage
+@inject ILocalStorageService LocalStorage
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<PageTitle>Favorite Cities</PageTitle>
+
+<div class="favorites-container">
+    <div class="content-overlay">
+        @if (isLoggedIn)
+        {
+            <h1 class="title">❤️ Favorite Cities</h1>
+
+            @if (isLoading)
+            {
+                <p class="loading">Loading favorites...</p>
+            }
+            else if (favoriteCitiesWeather.Any())
+            {
+                <div class="favorites-controls">
+                    <button @onclick="DeleteAllFavorites" class="btn btn-delete-all">Delete All</button>
+                </div>
+                <div class="favorites-list">
+                    @foreach (var cityWeather in favoriteCitiesWeather)
+                    {
+                        <div class="favorite-card">
+                            <h2 class="city-name">@cityWeather.City</h2>
+                            <p class="added-time">Added: @cityWeather.AddedTime.ToString("MMM dd, HH:mm")</p>
+                            <div class="weather-info">
+                                <p class="temp">@cityWeather.Temp°C</p>
+                                <p class="weather">@cityWeather.Weather</p>
+                                <p>Humidity: @cityWeather.Humidity%</p>
+                                <p>Wind: @cityWeather.WindSpeed m/s</p>
+                            </div>
+                            <span @onclick="() => DeleteFavorite(cityWeather.City)" class="delete-icon">🗑️</span>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="no-favorites">No favorite cities added yet.</p>
+            }
+
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="alert error">@errorMessage</div>
+            }
+        }
+        else
+        {
+            <div class="top-bar">
+                <NavLink href="/signin" class="btn btn-signin">Sign in/Sign up</NavLink>
+            </div>
+            <div class="login-message">
+                <p>Please sign in to view your favorite cities</p>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    /* Keep all existing favorites page styles */
+    .favorites-container {
+        position: relative;
+        min-height: 100vh;
+        background-image: url('/favorites-bg.jpg');
+        background-repeat: no-repeat;
+        background-position: center center;
+        background-attachment: fixed;
+        background-size: cover;
+        overflow: hidden;
+    }
+
+    .content-overlay {
+        position: relative;
+        z-index: 1;
+        padding: 20px;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    /* ... keep all other existing styles ... */
+
+    /* Add styles from MainLayout for the logged-out state */
+    .top-bar {
+        background: rgba(38, 50, 56, 0.9);
+        padding: 15px 30px;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        position: sticky;
+        top: 0;
+        z-index: 900;
+    }
+
+    .btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 20px;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-signin {
+        background: #26c6da;
+        color: #fff;
+    }
+
+    .btn-signin:hover {
+        background: #00acc1;
+        transform: scale(1.05);
+    }
+
+    .login-message {
+        text-align: center;
+        padding: 20px;
+        color: #dfe6e9;
+        font-size: 1.2rem;
+    }
+
+    .login-message p {
+        margin: 0;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    }
+</style>
+
+@code {
+    private List<FavoriteCityWeather> favoriteCitiesWeather = new();
+    private string errorMessage = "";
+    private bool isLoading = false;
+    private bool isLoggedIn = false;
+    private const string ApiKey = "027e44160659370f158944e22e8f23aa";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userEmail = await LocalStorage.GetItemAsync<string>("userEmail");
+        isLoggedIn = !string.IsNullOrEmpty(userEmail);
+
+        if (isLoggedIn)
+        {
+            await LoadFavorites();
+        }
+    }
+
+    private async Task LoadFavorites()
+    {
+        isLoading = true;
+        errorMessage = "";
+        favoriteCitiesWeather.Clear();
+        StateHasChanged();
+
+        try
+        {
+            var favoriteCities = await LocalStorage.GetItemAsync<List<string>>("favorites") ?? new List<string>();
+            var history = await LocalStorage.GetItemAsync<List<FavoriteCityWeather>>("favoriteHistory") ?? new List<FavoriteCityWeather>();
+
+            foreach (var city in favoriteCities)
+            {
+                try
+                {
+                    var response = await Http.GetStringAsync($"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={ApiKey}&units=metric");
+                    var json = System.Text.Json.JsonDocument.Parse(response);
+                    var addedTime = history.FirstOrDefault(h => h.City == city)?.AddedTime ?? DateTime.Now;
+                    favoriteCitiesWeather.Add(new FavoriteCityWeather
+                    {
+                        City = json.RootElement.GetProperty("name").GetString()!,
+                        Temp = json.RootElement.GetProperty("main").GetProperty("temp").GetDouble(),
+                        Weather = json.RootElement.GetProperty("weather")[0].GetProperty("description").GetString()!,
+                        FeelsLike = json.RootElement.GetProperty("main").GetProperty("feels_like").GetDouble(),
+                        Humidity = json.RootElement.GetProperty("main").GetProperty("humidity").GetInt32(),
+                        WindSpeed = json.RootElement.GetProperty("wind").GetProperty("speed").GetDouble(),
+                        Pressure = json.RootElement.GetProperty("main").GetProperty("pressure").GetInt32(),
+                        AddedTime = addedTime
+                    });
+                }
+                catch (Exception ex)
+                {
+                    errorMessage += $"Failed to load weather for {city}: {ex.Message}. ";
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading favorites: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task DeleteFavorite(string city)
+    {
+        try
+        {
+            var favoriteCities = await LocalStorage.GetItemAsync<List<string>>("favorites") ?? new List<string>();
+            favoriteCities.Remove(city);
+            await LocalStorage.SetItemAsync("favorites", favoriteCities);
+            favoriteCitiesWeather.RemoveAll(f => f.City == city);
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error deleting favorite: {ex.Message}";
+        }
+    }
+
+    private async Task DeleteAllFavorites()
+    {
+        try
+        {
+            await LocalStorage.RemoveItemAsync("favorites");
+            favoriteCitiesWeather.Clear();
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error deleting all favorites: {ex.Message}";
+        }
+    }
+
+    private class FavoriteCityWeather
+    {
+        public string City { get; set; } = "";
+        public double Temp { get; set; }
+        public string Weather { get; set; } = "";
+        public double FeelsLike { get; set; }
+        public int Humidity { get; set; }
+        public double WindSpeed { get; set; }
+        public int Pressure { get; set; }
+        public DateTime AddedTime { get; set; }
+    }
+}

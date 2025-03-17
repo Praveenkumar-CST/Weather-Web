@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("WeatherBackend")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+07741d0ea611e043404e34f215b475973dac1e61")]
 [assembly: System.Reflection.AssemblyProductAttribute("WeatherBackend")]
 [assembly: System.Reflection.AssemblyTitleAttribute("WeatherBackend")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

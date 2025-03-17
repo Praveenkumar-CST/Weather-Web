@@ -1,0 +1,341 @@
+﻿@page "/favorites"
+@using System.Net.Http.Json
+@using Blazored.LocalStorage
+@inject ILocalStorageService LocalStorage
+@inject HttpClient Http
+
+<PageTitle>Favorite Cities</PageTitle>
+
+<div class="favorites-container">
+    <div class="content-overlay">
+        <h1 class="title">❤️ Favorite Cities</h1>
+
+        @if (isLoading)
+        {
+            <p class="loading">Loading favorites...</p>
+        }
+        else if (favoriteCitiesWeather.Any())
+        {
+            <div class="favorites-controls">
+                <button @onclick="DeleteAllFavorites" class="btn btn-delete-all">Delete All</button>
+            </div>
+            <div class="favorites-list">
+                @foreach (var cityWeather in favoriteCitiesWeather)
+                {
+                    <div class="favorite-card">
+                        <h2 class="city-name">@cityWeather.City</h2>
+                        <p class="added-time">Added: @cityWeather.AddedTime.ToString("MMM dd, HH:mm")</p>
+                        <div class="weather-info">
+                            <p class="temp">@cityWeather.Temp°C</p>
+                            <p class="weather">@cityWeather.Weather</p>
+                            <p>Humidity: @cityWeather.Humidity%</p>
+                            <p>Wind: @cityWeather.WindSpeed m/s</p>
+                        </div>
+                        <button @onclick="() => DeleteFavorite(cityWeather.City)" class="btn btn-delete">Remove</button>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <p class="no-favorites">No favorite cities added yet.</p>
+        }
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="alert error">@errorMessage</div>
+        }
+    </div>
+</div>
+
+<style>
+    .favorites-container {
+        position: relative;
+        min-height: 100vh;
+        background-image: url('/favorites-bg.jpg');
+        background-repeat: no-repeat;
+        background-position: center center;
+        background-attachment: fixed;
+        background-size: cover;
+        overflow: hidden;
+    }
+
+    .content-overlay {
+        position: relative;
+        z-index: 1;
+        padding: 20px;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .title {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #ff6f61;
+        text-align: center;
+        margin-bottom: 30px;
+        text-shadow: 0 3px 6px rgba(0, 0, 0, 0.4);
+    }
+
+    .favorites-controls {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 20px;
+    }
+
+    .favorites-list {
+        display: flex;
+        flex-direction: row;
+        gap: 20px;
+        overflow-x: auto;
+        padding: 10px 0;
+        scroll-behavior: smooth;
+        -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+    }
+
+    .favorites-list::-webkit-scrollbar {
+        height: 8px;
+    }
+
+    .favorites-list::-webkit-scrollbar-thumb {
+        background: #ff6f61;
+        border-radius: 4px;
+    }
+
+    .favorites-list::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    .favorite-card {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 15px;
+        padding: 15px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s ease;
+        border: 2px solid #ff6f61;
+        min-width: 250px; /* Fixed width for horizontal layout */
+        max-width: 250px;
+        flex-shrink: 0;
+        position: relative;
+    }
+
+    .favorite-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 18px rgba(0, 0, 0, 0.25);
+    }
+
+    .city-name {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #ff6f61;
+        margin-bottom: 5px;
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .added-time {
+        font-size: 0.75rem;
+        color: #636e72;
+        text-align: center;
+        margin-bottom: 10px;
+    }
+
+    .weather-info {
+        font-size: 0.85rem;
+        color: #2d3436;
+        line-height: 1.4;
+        text-align: center;
+    }
+
+    .temp {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #fdcb6e;
+        margin: 5px 0;
+    }
+
+    .weather {
+        font-size: 0.95rem;
+        color: #0984e3;
+        text-transform: capitalize;
+        margin-bottom: 5px;
+    }
+
+    .weather-info p {
+        margin: 2px 0;
+    }
+
+    .btn {
+        padding: 5px 10px;
+        border: none;
+        border-radius: 15px;
+        font-size: 0.75rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-delete {
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        background: #ff6f61;
+        color: #fff;
+    }
+
+    .btn-delete:hover {
+        background: #e55050;
+        transform: scale(1.05);
+    }
+
+    .btn-delete-all {
+        background: #ff6f61;
+        color: #fff;
+    }
+
+    .btn-delete-all:hover {
+        background: #e55050;
+        transform: scale(1.05);
+    }
+
+    .loading {
+        text-align: center;
+        font-size: 1.2rem;
+        color: #ff6f61;
+        animation: pulse 1.5s infinite;
+    }
+
+    .no-favorites {
+        text-align: center;
+        font-size: 1.2rem;
+        color: #dfe6e9;
+        margin-top: 20px;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    }
+
+    .alert {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        padding: 10px 20px;
+        border-radius: 10px;
+        color: #fff;
+        background: #d63031;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        animation: fadeIn 0.5s ease;
+    }
+
+    @@keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.5; }
+        100% { opacity: 1; }
+    }
+
+    @@keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+
+@code {
+    private List<FavoriteCityWeather> favoriteCitiesWeather = new();
+    private string errorMessage = "";
+    private bool isLoading = false;
+    private const string ApiKey = "027e44160659370f158944e22e8f23aa";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadFavorites();
+    }
+
+    private async Task LoadFavorites()
+    {
+        isLoading = true;
+        errorMessage = "";
+        favoriteCitiesWeather.Clear();
+        StateHasChanged();
+
+        try
+        {
+            var favoriteCities = await LocalStorage.GetItemAsync<List<string>>("favorites") ?? new List<string>();
+            var history = await LocalStorage.GetItemAsync<List<FavoriteCityWeather>>("favoriteHistory") ?? new List<FavoriteCityWeather>();
+
+            foreach (var city in favoriteCities)
+            {
+                try
+                {
+                    var response = await Http.GetStringAsync($"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={ApiKey}&units=metric");
+                    var json = System.Text.Json.JsonDocument.Parse(response);
+                    var addedTime = history.FirstOrDefault(h => h.City == city)?.AddedTime ?? DateTime.Now; // Fallback to now if not found
+                    favoriteCitiesWeather.Add(new FavoriteCityWeather
+                    {
+                        City = json.RootElement.GetProperty("name").GetString()!,
+                        Temp = json.RootElement.GetProperty("main").GetProperty("temp").GetDouble(),
+                        Weather = json.RootElement.GetProperty("weather")[0].GetProperty("description").GetString()!,
+                        FeelsLike = json.RootElement.GetProperty("main").GetProperty("feels_like").GetDouble(),
+                        Humidity = json.RootElement.GetProperty("main").GetProperty("humidity").GetInt32(),
+                        WindSpeed = json.RootElement.GetProperty("wind").GetProperty("speed").GetDouble(),
+                        Pressure = json.RootElement.GetProperty("main").GetProperty("pressure").GetInt32(),
+                        AddedTime = addedTime
+                    });
+                }
+                catch (Exception ex)
+                {
+                    errorMessage += $"Failed to load weather for {city}: {ex.Message}. ";
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading favorites: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task DeleteFavorite(string city)
+    {
+        try
+        {
+            var favoriteCities = await LocalStorage.GetItemAsync<List<string>>("favorites") ?? new List<string>();
+            favoriteCities.Remove(city);
+            await LocalStorage.SetItemAsync("favorites", favoriteCities);
+            favoriteCitiesWeather.RemoveAll(f => f.City == city);
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error deleting favorite: {ex.Message}";
+        }
+    }
+
+    private async Task DeleteAllFavorites()
+    {
+        try
+        {
+            await LocalStorage.RemoveItemAsync("favorites");
+            favoriteCitiesWeather.Clear();
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error deleting all favorites: {ex.Message}";
+        }
+    }
+
+    private class FavoriteCityWeather
+    {
+        public string City { get; set; } = "";
+        public double Temp { get; set; }
+        public string Weather { get; set; } = "";
+        public double FeelsLike { get; set; }
+        public int Humidity { get; set; }
+        public double WindSpeed { get; set; }
+        public int Pressure { get; set; }
+        public DateTime AddedTime { get; set; }
+    }
+}

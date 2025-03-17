@@ -13051,13 +13051,6 @@
 /Users/praveenkumar.s/Desktop/final climate/BlazorApp11/obj/Debug/net9.0/refint/BlazorApp11.dll
 /Users/praveenkumar.s/Desktop/final climate/BlazorApp11/obj/Debug/net9.0/BlazorApp11.pdb
 /Users/praveenkumar.s/Desktop/final climate/BlazorApp11/obj/Debug/net9.0/ref/BlazorApp11.dll
-/Users/praveenkumar.s/Desktop/final climate/BlazorApp11/bin/Debug/net9.0/wwwroot/_framework/BlazorApp11.pmnvzz3coz.pdb
-/Users/praveenkumar.s/Desktop/final climate/BlazorApp11/bin/Debug/net9.0/wwwroot/_framework/BlazorApp11.lsfavr0pnr.wasm
-/Users/praveenkumar.s/Desktop/final climate/BlazorApp11/bin/Debug/net9.0/wwwroot/_framework/BlazorApp11.lsfavr0pnr.wasm.gz
-/Users/praveenkumar.s/Desktop/final climate/BlazorApp11/bin/Debug/net9.0/wwwroot/_framework/BlazorApp11.pmnvzz3coz.pdb.gz
-/Users/praveenkumar.s/Desktop/final climate/BlazorApp11/obj/Debug/net9.0/compressed/jb7d9j6yu7-lsfavr0pnr.gz
-/Users/praveenkumar.s/Desktop/final climate/BlazorApp11/obj/Debug/net9.0/compressed/k41vb95ebs-pmnvzz3coz.gz
-/Users/praveenkumar.s/Desktop/final climate/BlazorApp11/obj/Debug/net9.0/compressed/jxpwyd3kq3-8sw4hv9tqf.gz
 /Users/praveenkumar.s/Important/final climate/BlazorApp11/bin/Debug/net9.0/wwwroot/_framework/blazor.webassembly.js
 /Users/praveenkumar.s/Important/final climate/BlazorApp11/bin/Debug/net9.0/wwwroot/_framework/Blazored.LocalStorage.12n6dz54qr.wasm
 /Users/praveenkumar.s/Important/final climate/BlazorApp11/bin/Debug/net9.0/wwwroot/_framework/DnsClient.wommcjgqe2.wasm
@@ -14257,3 +14250,11 @@
 /Users/praveenkumar.s/Important/final climate/BlazorApp11/obj/Debug/net9.0/refint/BlazorApp11.dll
 /Users/praveenkumar.s/Important/final climate/BlazorApp11/obj/Debug/net9.0/BlazorApp11.pdb
 /Users/praveenkumar.s/Important/final climate/BlazorApp11/obj/Debug/net9.0/ref/BlazorApp11.dll
+/Users/praveenkumar.s/Desktop/final climate/BlazorApp11/obj/Debug/net9.0/BlazorApp11.sourcelink.json
+/Users/praveenkumar.s/Desktop/final climate/BlazorApp11/bin/Debug/net9.0/wwwroot/_framework/BlazorApp11.auputyl4ae.pdb
+/Users/praveenkumar.s/Desktop/final climate/BlazorApp11/bin/Debug/net9.0/wwwroot/_framework/BlazorApp11.64ul5aacnt.wasm
+/Users/praveenkumar.s/Desktop/final climate/BlazorApp11/bin/Debug/net9.0/wwwroot/_framework/BlazorApp11.64ul5aacnt.wasm.gz
+/Users/praveenkumar.s/Desktop/final climate/BlazorApp11/bin/Debug/net9.0/wwwroot/_framework/BlazorApp11.auputyl4ae.pdb.gz
+/Users/praveenkumar.s/Desktop/final climate/BlazorApp11/obj/Debug/net9.0/compressed/jb7d9j6yu7-64ul5aacnt.gz
+/Users/praveenkumar.s/Desktop/final climate/BlazorApp11/obj/Debug/net9.0/compressed/k41vb95ebs-auputyl4ae.gz
+/Users/praveenkumar.s/Desktop/final climate/BlazorApp11/obj/Debug/net9.0/compressed/jxpwyd3kq3-ctjtidp8p9.gz

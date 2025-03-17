@@ -1,0 +1,372 @@
+@page "/dashboard"
+@using System.Net.Http.Json
+@inject HttpClient Http
+
+<PageTitle>Weather Dashboard</PageTitle>
+
+<div class="dashboard-container">
+    <div class="content-overlay">
+        <h1 class="title">🌦️ Weather Dashboard</h1>
+        
+        @if (isLoading)
+        {
+            <div class="loading-container">
+                <div class="loading-spinner"></div>
+                <p class="loading-text">Fetching weather data...</p>
+            </div>
+        }
+        else if (topCitiesWeather.Any())
+        {
+            <div class="cities-grid">
+                @foreach (var city in topCitiesWeather)
+                {
+                    <div class="city-card">
+                        <div class="city-header">
+                            <h2 class="city-name">@city.City</h2>
+                            <p class="city-temp">@city.Temp°C</p>
+                        </div>
+                        <div class="weather-icon">
+                            @GetWeatherIcon(city.Weather)
+                        </div>
+                        <p class="city-weather">@city.Weather</p>
+                        <div class="city-details">
+                            <div class="detail-item">
+                                <span class="detail-icon">💧</span>
+                                <span class="detail-value">@city.Humidity%</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-icon">💨</span>
+                                <span class="detail-value">@city.WindSpeed m/s</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-icon">🔄</span>
+                                <span class="detail-value">@city.Pressure hPa</span>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+            
+            <button class="refresh-button" @onclick="LoadTopCitiesWeather">
+                <span class="refresh-icon">🔄</span> Refresh Data
+            </button>
+        }
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="alert error">
+                <span class="alert-icon">⚠️</span>
+                <span class="alert-message">@errorMessage</span>
+                <button class="alert-close" @onclick="() => errorMessage = string.Empty">×</button>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .dashboard-container {
+        position: relative;
+        min-height: 100vh;
+        background: linear-gradient(120deg, #2b5876 0%, #4e4376 100%);
+        overflow: hidden;
+        color: #f8f9fa;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .content-overlay {
+        position: relative;
+        z-index: 1;
+        padding: 2rem;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .title {
+        font-size: 3rem;
+        font-weight: 700;
+        color: #ffffff;
+        text-align: center;
+        margin-bottom: 2rem;
+        text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        letter-spacing: 1px;
+    }
+
+    .cities-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .city-card {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    .city-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 48px rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .city-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .city-name {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #ffffff;
+        margin: 0;
+    }
+
+    .city-temp {
+        font-size: 2.2rem;
+        font-weight: 800;
+        color: #ffd166;
+        margin: 0;
+    }
+
+    .weather-icon {
+        font-size: 4rem;
+        text-align: center;
+        margin: 1rem 0;
+    }
+
+    .city-weather {
+        font-size: 1.2rem;
+        color: #e2e8f0;
+        text-transform: capitalize;
+        text-align: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .city-details {
+        margin-top: auto;
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 0.5rem;
+        background: rgba(0, 0, 0, 0.1);
+        border-radius: 0.5rem;
+        padding: 1rem;
+    }
+
+    .detail-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .detail-icon {
+        font-size: 1.2rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .detail-value {
+        font-size: 0.9rem;
+        color: #cbd5e0;
+    }
+
+    .loading-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 300px;
+    }
+
+    .loading-spinner {
+        width: 50px;
+        height: 50px;
+        border: 5px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: #ffffff;
+        animation: spin 1s ease-in-out infinite;
+        margin-bottom: 1rem;
+    }
+
+    .loading-text {
+        font-size: 1.2rem;
+        color: #ffffff;
+        text-align: center;
+    }
+
+    .refresh-button {
+        display: block;
+        margin: 0 auto;
+        background: rgba(255, 255, 255, 0.1);
+        color: #ffffff;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 2rem;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(4px);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+
+    .refresh-button:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: translateY(-2px);
+    }
+
+    .refresh-icon {
+        display: inline-block;
+        margin-right: 0.5rem;
+    }
+
+    .alert {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        padding: 1rem 1.5rem;
+        border-radius: 0.75rem;
+        color: #fff;
+        background: rgba(220, 38, 38, 0.9);
+        backdrop-filter: blur(4px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        animation: fadeIn 0.5s ease;
+        display: flex;
+        align-items: center;
+        max-width: 400px;
+    }
+
+    .alert-icon {
+        margin-right: 0.75rem;
+        font-size: 1.2rem;
+    }
+
+    .alert-message {
+        flex-grow: 1;
+    }
+
+    .alert-close {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 1.5rem;
+        cursor: pointer;
+        padding: 0 0.5rem;
+        margin-left: 0.75rem;
+    }
+
+    @@keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    @@keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @@media (max-width: 768px) {
+        .cities-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .title {
+            font-size: 2.2rem;
+        }
+    }
+</style>
+
+@code {
+    private List<TopCityWeather> topCitiesWeather = new();
+    private string errorMessage = "";
+    private bool isLoading = false;
+    private const string ApiKey = "027e44160659370f158944e22e8f23aa";
+    private readonly string[] topCities = { "New York", "London", "Tokyo", "Sydney", "Paris" };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadTopCitiesWeather();
+    }
+
+    private async Task LoadTopCitiesWeather()
+    {
+        isLoading = true;
+        errorMessage = "";
+        topCitiesWeather.Clear();
+        StateHasChanged();
+
+        try
+        {
+            foreach (var topCity in topCities)
+            {
+                try
+                {
+                    var response = await Http.GetStringAsync($"https://api.openweathermap.org/data/2.5/weather?q={topCity}&appid={ApiKey}&units=metric");
+                    var json = System.Text.Json.JsonDocument.Parse(response);
+                    var cityName = json.RootElement.GetProperty("name").GetString();
+                    var temp = json.RootElement.GetProperty("main").GetProperty("temp").GetDouble();
+                    var weatherDesc = json.RootElement.GetProperty("weather")[0].GetProperty("description").GetString();
+                    var humidity = json.RootElement.GetProperty("main").GetProperty("humidity").GetInt32();
+                    var windSpeed = json.RootElement.GetProperty("wind").GetProperty("speed").GetDouble();
+                    var pressure = json.RootElement.GetProperty("main").GetProperty("pressure").GetInt32();
+
+                    topCitiesWeather.Add(new TopCityWeather
+                    {
+                        City = cityName!,
+                        Temp = temp,
+                        Weather = weatherDesc!,
+                        Humidity = humidity,
+                        WindSpeed = windSpeed,
+                        Pressure = pressure
+                    });
+                }
+                catch (Exception)
+                {
+                    // Skip failed cities silently
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading dashboard: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private string GetWeatherIcon(string weatherDescription)
+    {
+        return weatherDescription.ToLower() switch
+        {
+            var w when w.Contains("clear") => "☀️",
+            var w when w.Contains("sun") => "☀️",
+            var w when w.Contains("cloud") => "☁️",
+            var w when w.Contains("rain") => "🌧️",
+            var w when w.Contains("drizzle") => "🌦️",
+            var w when w.Contains("thunder") => "⛈️",
+            var w when w.Contains("snow") => "❄️",
+            var w when w.Contains("mist") || w.Contains("fog") => "🌫️",
+            _ => "🌤️"
+        };
+    }
+
+    private class TopCityWeather
+    {
+        public string City { get; set; } = "";
+        public double Temp { get; set; }
+        public string Weather { get; set; } = "";
+        public int Humidity { get; set; }
+        public double WindSpeed { get; set; }
+        public int Pressure { get; set; }
+    }
+}
