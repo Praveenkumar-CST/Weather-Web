@@ -1,0 +1,44 @@
+@page "/signup"
+@using Supabase
+@inject NavigationManager NavManager
+
+<h3>Sign Up</h3>
+
+@if (!string.IsNullOrEmpty(Message))
+{
+    <p>@Message</p>
+}
+
+<div>
+    <input @bind="Email" placeholder="Enter email" />
+    <input @bind="Password" type="password" placeholder="Enter password" />
+    <button @onclick="SignUp">Sign Up</button>
+</div>
+
+@code {
+    private string Email { get; set; } = "";
+    private string Password { get; set; } = "";
+    private string Message { get; set; } = "";
+
+    private async Task SignUp()
+    {
+        var client = new Supabase.Client(
+            "https://uzvvxayexmusumorxjtx.supabase.co", 
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV6dnZ4YXlleG11c3Vtb3J4anR4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkyNjQyMzMsImV4cCI6MjA1NDg0MDIzM30.lPqH-Xv0BYuAr-KprV-HdbDktFBMcqUv5_ZCuEpxQNU",
+            new Supabase.SupabaseOptions { AutoConnectRealtime = true });
+
+        try
+        {
+            var response = await client.Auth.SignUp(Email, Password);
+            if (response != null)
+            {
+                Message = "Signup successful! Redirecting...";
+                NavManager.NavigateTo("/welcome");
+            }
+        }
+        catch (Exception ex)
+        {
+            Message = $"Signup failed: {ex.Message}";
+        }
+    }
+}

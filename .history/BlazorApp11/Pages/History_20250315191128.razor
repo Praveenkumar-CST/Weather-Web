@@ -1,0 +1,37 @@
+﻿@page "/history"
+
+<h3>Add City to Favorites</h3>
+
+<input @bind="CityName" placeholder="Enter city name" />
+<button @onclick="SaveCity">Save</button>
+
+@if (!string.IsNullOrEmpty(Message))
+{
+    <p>@Message</p>
+}
+
+@code {
+    private string CityName { get; set; } = string.Empty;
+    private string Message { get; set; } = string.Empty;
+    
+    private async Task SaveCity()
+    {
+        if (string.IsNullOrWhiteSpace(CityName))
+        {
+            Message = "Please enter a city name.";
+            return;
+        }
+
+        var http = new HttpClient { BaseAddress = new Uri("http://localhost:5188/") };
+        var response = await http.PostAsJsonAsync("api/UserFavorites", new { city = CityName });
+        
+        if (response.IsSuccessStatusCode)
+        {
+            Message = "City saved successfully!";
+        }
+        else
+        {
+            Message = "Failed to save city.";
+        }
+    }
+}

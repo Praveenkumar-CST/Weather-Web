@@ -1,0 +1,174 @@
+﻿@page "/favorites"
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<PageTitle>Favorites</PageTitle>
+
+<style>
+    body {
+        background: url('/mn.jpg') no-repeat center center fixed;
+        background-size: cover;
+        height: 100vh;
+        margin: 0;
+        overflow: hidden;
+    }
+
+    .fav-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    .fav-item {
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 20px;
+        border-radius: 12px;
+        text-align: center;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        transition: transform 0.3s;
+        width: 220px;
+    }
+
+    .fav-item:hover {
+        transform: scale(1.05);
+    }
+
+    .fav-city {
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 8px;
+    }
+
+    .remove-btn {
+        margin-top: 10px;
+        background: red;
+        padding: 8px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+
+    .remove-btn:hover {
+        background: darkred;
+    }
+
+    .error-message {
+        color: red;
+        font-size: 16px;
+        margin-top: 10px;
+    }
+</style>
+
+<div class="flex flex-col items-center p-6 min-h-screen text-white">
+    <h1 class="text-4xl font-bold mb-6 shadow-lg p-2 rounded text-white bg-black bg-opacity-50">❤️ Favorite Cities</h1>
+    <button @onclick="GoBack" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-md shadow-lg mb-6">⬅ Back</button>
+
+    @if (isLoading)
+    {
+        <p class="text-white text-lg">Loading favorites...</p>
+    }
+    else if (favoriteCities.Any())
+    {
+        <div class="fav-container">
+            @foreach (var city in favoriteCities)
+            {
+                <div class="fav-item">
+                    <p class="fav-city">@city.CityName</p>
+                    <button @onclick="() => RemoveFromFavorites(city.CityName)" class="remove-btn">Remove</button>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <p class="text-white text-lg">No favorite cities added yet.</p>
+    }
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <p class="error-message">@errorMessage</p>
+    }
+</div>
+
+@code {
+    private List<UserFavorite> favoriteCities = new();
+    private bool isLoading = false;
+    private string errorMessage = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadFavorites();
+    }
+
+    private async Task LoadFavorites()
+    {
+        isLoading = true;
+        errorMessage = "";
+        try
+        {
+            var response = await Http.GetAsync("http://localhost:5188/api/UserFavorites");
+            if (response.IsSuccessStatusCode)
+            {
+                favoriteCities = await response.Content.ReadFromJsonAsync<List<UserFavorite>>() ?? new();
+            }
+            else
+            {
+                errorMessage = $"Failed to load favorites: {response.StatusCode}";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading favorites: {ex.Message}";
+            Console.WriteLine(errorMessage);
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void GoBack()
+    {
+        Navigation.NavigateTo("/");
+    }
+
+    private async Task RemoveFromFavorites(string cityName)
+    {
+        errorMessage = "";
+        try
+        {
+            var response = await Http.DeleteAsync($"http://localhost:5188/api/UserFavorites/{Uri.EscapeDataString(cityName)}");
+            if (response.IsSuccessStatusCode)
+            {
+                favoriteCities.RemoveAll(c => c.CityName == cityName);
+                Console.WriteLine($"Successfully removed {cityName}");
+            }
+            else
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                errorMessage = $"Failed to remove {cityName}: {response.StatusCode} - {errorContent}";
+                Console.WriteLine(errorMessage);
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error removing {cityName}: {ex.Message}";
+            Console.WriteLine(errorMessage);
+        }
+        finally
+        {
+            StateHasChanged(); // Ensure UI updates even on failure
+        }
+    }
+
+    private class UserFavorite
+    {
+        public string Id { get; set; }
+        public string CityName { get; set; }
+        public DateTime AddedOn { get; set; }
+    }
+}

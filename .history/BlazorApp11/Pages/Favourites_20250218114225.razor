@@ -1,0 +1,61 @@
+﻿@page "/favourites"
+@using MongoDB.Driver
+@using MongoDB.Bson
+
+@using MongoDB.Bson
+private IMongoCollection<BsonDocument>? _collection;
+private WeatherData? Weather;
+
+@code {
+    private IMongoCollection<BsonDocument> _collection;
+    private List<string> FavouriteCities = new();
+    private string NewCity = "";
+
+    protected override void OnInitialized()
+    {
+        var database = MongoClient.GetDatabase("WeatherApp");
+        _collection = database.GetCollection<BsonDocument>("Favourites");
+        LoadFavourites();
+    }
+
+    private void LoadFavourites()
+    {
+        FavouriteCities = _collection.Find(new BsonDocument())
+                                    .ToList()
+                                    .Select(doc => doc["City"].AsString)
+                                    .ToList();
+    }
+
+    private async Task AddToFavourites()
+    {
+        if (!string.IsNullOrWhiteSpace(NewCity) && !FavouriteCities.Contains(NewCity))
+        {
+            var newFav = new BsonDocument { { "City", NewCity } };
+            await _collection.InsertOneAsync(newFav);
+            FavouriteCities.Add(NewCity);
+            NewCity = "";
+        }
+    }
+
+    private async Task RemoveFromFavourites(string city)
+    {
+        var filter = Builders<BsonDocument>.Filter.Eq("City", city);
+        await _collection.DeleteOneAsync(filter);
+        FavouriteCities.Remove(city);
+    }
+}
+
+<h3>Favourite Cities</h3>
+<ul>
+    @foreach (var city in FavouriteCities)
+    {
+        <li>
+            @city 
+            <button @onclick="() => RemoveFromFavourites(city)">Remove</button>
+        </li>
+    }
+</ul>
+
+<input @bind="NewCity" placeholder="Enter city name" />
+<button @onclick="AddToFavourites">Add to Favourites</button>
+

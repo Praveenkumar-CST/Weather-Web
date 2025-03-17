@@ -1,0 +1,175 @@
+﻿@page "/"
+
+@using System.Net.Http.Json
+@using Blazored.LocalStorage
+@inject NavigationManager Navigation
+@inject I2LocalStorageService LocalStorage
+
+<PageTitle>Weather Prediction</PageTitle>
+
+<style>
+    .body {
+    margin: 0;
+    overflow: hidden;
+    position: relative;
+    background: url("") no-repeat center center;
+    background-size: cover;
+}
+
+
+.background-video {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: -2;
+}
+
+.forecast-container {
+    background: transparent;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.forecast-item {
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 20px;
+    margin: 10px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s;
+    width: 180px;
+}
+
+.forecast-item:hover {
+    transform: scale(1.1);
+}
+
+.forecast-date {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+.forecast-temp {
+    font-size: 22px;
+    font-weight: bold;
+    margin-bottom: 6px;
+    color: #FFD700;
+}
+
+.forecast-weather {
+    font-size: 16px;
+    text-transform: capitalize;
+}
+</style>
+
+<video class="background-video" autoplay loop muted>
+    <source src="/kc.mp4" type="video/mp4">
+    Your browser does not support the video tag.
+</video>
+<div class="bg">
+
+<div class="flex flex-col items-center p-6 min-h-screen text-white">
+    <h1 class="text-4xl font-bold mb-6 shadow-lg p-2 rounded text-white bg-black bg-opacity-50">🌦 Weather Prediction 🌤</h1>
+    <div class="flex gap-2 mb-6">
+        <input @bind="city" placeholder="Enter city" class="p-3 border rounded-md shadow-md text-black" />
+        <button @onclick="GetWeather" class="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded-md shadow-lg">Get Weather</button>
+        <button @onclick="AddToFavorites" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md shadow-lg">❤️ Fav</button>
+    </div>
+
+    @if (!string.IsNullOrEmpty(weather))
+    {
+        <div class="bg-black bg-opacity-50 p-6 rounded-lg shadow-xl text-center w-80 mb-4">
+            <p class="text-xl font-semibold text-white">@weather</p>
+        </div>
+    }
+    @if (forecast.Any())
+    {
+        <div class="forecast-container">
+            @foreach (var day in forecast)
+            {
+                <div class="forecast-item">
+                    <p class="forecast-date">@day.Date</p>
+                    <p class="forecast-temp">@day.Temp°C</p>
+                    <p class="forecast-weather">@day.Weather</p>
+                </div>
+            }
+        </div>
+    }
+    @if (isAdded)
+    {
+        <p class="text-green-500 text-lg mt-4">City added to favorites!</p>
+    }
+</div>
+</div>
+
+@code {
+    private string city = "";
+    private string weather = "";
+    private List<string> favoriteCities = new();
+    private List<WeatherForecast> forecast = new();
+    private bool isAdded = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        favoriteCities = await LocalStorage.GetItemAsync<List<string>>("favorites") ?? new List<string>();
+    }
+
+    private async Task GetWeather()
+    {
+        if (!string.IsNullOrEmpty(city))
+        {
+            var http = new HttpClient();
+            var apiKey = "027e44160659370f158944e22e8f23aa";
+            var response = await http.GetStringAsync($"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={apiKey}&units=metric");
+            var json = System.Text.Json.JsonDocument.Parse(response);
+            var cityName = json.RootElement.GetProperty("name").GetString();
+            var temp = json.RootElement.GetProperty("main").GetProperty("temp").GetDouble();
+            weather = $"{cityName}: {temp}°C";
+            await GetForecast();
+        }
+    }
+
+    private async Task GetForecast()
+    {
+        var http = new HttpClient();
+        var apiKey = "027e44160659370f158944e22e8f23aa";
+        var response = await http.GetStringAsync($"https://api.openweathermap.org/data/2.5/forecast?q={city}&appid={apiKey}&units=metric");
+        var json = System.Text.Json.JsonDocument.Parse(response);
+        forecast = json.RootElement.GetProperty("list")
+            .EnumerateArray()
+            .Where((item, index) => index % 8 == 0)
+            .Take(5)
+            .Select(item => new WeatherForecast
+            {
+                Date = item.GetProperty("dt_txt").GetString().Split(' ')[0],
+                Temp = item.GetProperty("main").GetProperty("temp").GetDouble(),
+                Weather = item.GetProperty("weather")[0].GetProperty("description").GetString()
+            }).ToList();
+    }
+
+    private async Task AddToFavorites()
+    {
+        if (!string.IsNullOrEmpty(city) && !favoriteCities.Contains(city))
+        {
+            favoriteCities.Add(city);
+            await LocalStorage.SetItemAsync("favorites", favoriteCities);
+            isAdded = true;
+            StateHasChanged(); // Refresh the page to show the success message
+        }
+    }
+
+    private class WeatherForecast
+    {
+        public string Date { get; set; }
+        public double Temp { get; set; }
+        public string Weather { get; set; }
+    }
+}

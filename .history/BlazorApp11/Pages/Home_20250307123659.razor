@@ -1,0 +1,330 @@
+﻿@page "/"
+
+@using System.Net.Http.Json
+@using Blazored.LocalStorage
+@using YourBlazorApp.Services  <!-- Add this namespace for MongoDbService -->
+@using BlazorApp11.Services
+@inject NavigationManager Navigation
+@inject ILocalStorageService LocalStorage
+@inject IJSRuntime JSRuntime
+@inject HttpClient Http
+@inject MongoDbService MongoDbService  <!-- Inject the MongoDB service -->
+
+<PageTitle>Weather Prediction</PageTitle>
+
+<style>
+body {
+    background: url('/mn.jpg') no-repeat center center fixed;
+    background-size: cover;
+    height: 100vh;
+    margin: 0;
+    overflow: hidden;
+}
+.forecast-container, .dashboard-container {
+    background: transparent;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+}
+.forecast-item, .dashboard-item {
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 15px;
+    margin: 10px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s;
+    width: 160px;
+}
+.forecast-item:hover, .dashboard-item:hover {
+    transform: scale(1.1);
+}
+.forecast-date, .dashboard-city {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+.forecast-temp, .dashboard-temp {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 6px;
+    color: #FFD700;
+}
+.forecast-weather, .dashboard-weather {
+    font-size: 14px;
+    text-transform: capitalize;
+}
+.success-message, .error-message {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+.success-message {
+    background: rgba(0, 128, 0, 0.8);
+}
+.error-message {
+    background: rgba(255, 0, 0, 0.8);
+}
+.loading {
+    font-size: 18px;
+    color: #FFD700;
+}
+</style>
+
+<div class="flex flex-col items-center p-6 min-h-screen text-white">
+    <h1 class="text-4xl font-bold mb-6 shadow-lg p-2 rounded text-white bg-black bg-opacity-50">🌦 Weather Prediction 🌤</h1>
+    <div class="flex gap-2 mb-6">
+        <input @bind="city" @bind:event="oninput" placeholder="Enter city (or leave blank for current location)" class="p-3 border rounded-md shadow-md text-black" />
+        <button @onclick="GetWeather" disabled="@isLoading" class="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded-md shadow-lg">@(isLoading ? "Loading..." : "Get Weather")</button>
+        <button @onclick="AddToFavorites" disabled="@isLoading" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md shadow-lg">❤️ Fav</button>
+    </div>
+
+    @if (isLoading)
+    {
+        <p class="loading">Loading weather data...</p>
+    }
+    else if (!string.IsNullOrEmpty(weather))
+    {
+        <div class="bg-black bg-opacity-50 p-6 rounded-lg shadow-xl text-center w-80 mb-4">
+            <p class="text-xl font-semibold text-white">@weather</p>
+        </div>
+    }
+
+    @if (forecast.Any())
+    {
+        <div class="forecast-container">
+            @foreach (var day in forecast)
+            {
+                <div class="forecast-item">
+                    <p class="forecast-date">@day.Date</p>
+                    <p class="forecast-temp">@day.Temp°C</p>
+                    <p class="forecast-weather">@day.Weather</p>
+                </div>
+            }
+        </div>
+    }
+
+    @if (!isLoading && isCurrentLocation && topCitiesWeather.Any())
+    {
+        <div class="dashboard-container">
+            @foreach (var cityWeather in topCitiesWeather)
+            {
+                <div class="dashboard-item">
+                    <p class="dashboard-city">@cityWeather.City</p>
+                    <p class="dashboard-temp">@cityWeather.Temp°C</p>
+                    <p class="dashboard-weather">@cityWeather.Weather</p>
+                </div>
+            }
+        </div>
+    }
+
+    @if (isAdded)
+    {
+        <div class="success-message">City added to favorites successfully!</div>
+    }
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="error-message">@errorMessage</div>
+    }
+</div>
+
+@code {
+    private string city = "";
+    private string weather = "";
+    private List<string> favoriteCities = new();
+    private List<WeatherForecast> forecast = new();
+    private List<TopCityWeather> topCitiesWeather = new();
+    private bool isAdded = false;
+    private string errorMessage = "";
+    private bool isLoading = false;
+    private bool isCurrentLocation = false; // Tracks if weather is from current location
+    private const string ApiKey = "027e44160659370f158944e22e8f23aa"; // Replace with your API key
+    private readonly string[] topCities = { "New York", "London", "Tokyo", "Sydney", "Paris" };
+
+    protected override async Task OnInitializedAsync()
+    {
+        favoriteCities = await LocalStorage.GetItemAsync<List<string>>("favorites") ?? new List<string>();
+        // Register JavaScript for geolocation
+        await JSRuntime.InvokeVoidAsync("eval", @"
+            window.getCurrentLocation = async () => {
+                return new Promise((resolve, reject) => {
+                    if (navigator.geolocation) {
+                        navigator.geolocation.getCurrentPosition(
+                            (position) => {
+                                resolve({
+                                    latitude: position.coords.latitude,
+                                    longitude: position.coords.longitude
+                                });
+                            },
+                            (error) => {
+                                console.error('Geolocation error:', error);
+                                resolve(null);
+                            }
+                        );
+                    } else {
+                        console.error('Geolocation not supported.');
+                        resolve(null);
+                    }
+                });
+            };
+        ");
+        // Load current location weather and top cities on initialization
+        await GetWeather(); // This sets isCurrentLocation to true initially
+        await LoadTopCitiesWeather();
+    }
+
+    private async Task GetWeather()
+    {
+        isLoading = true;
+        errorMessage = "";
+        weather = "";
+        forecast.Clear();
+        StateHasChanged();
+
+        try
+        {
+            if (string.IsNullOrEmpty(city))
+            {
+                await GetWeatherForCurrentLocation();
+                isCurrentLocation = true; // Mark as current location weather
+            }
+            else
+            {
+                await GetWeatherForCity();
+                isCurrentLocation = false; // Mark as searched city weather
+            }
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task GetWeatherForCurrentLocation()
+    {
+        var location = await JSRuntime.InvokeAsync<Geolocation>("getCurrentLocation");
+        if (location == null)
+        {
+            errorMessage = "Unable to retrieve location. Please allow location access or enter a city.";
+            return;
+        }
+
+        var response = await Http.GetStringAsync($"https://api.openweathermap.org/data/2.5/weather?lat={location.Latitude}&lon={location.Longitude}&appid={ApiKey}&units=metric");
+        var json = System.Text.Json.JsonDocument.Parse(response);
+        var cityName = json.RootElement.GetProperty("name").GetString();
+        var temp = json.RootElement.GetProperty("main").GetProperty("temp").GetDouble();
+        weather = $"{cityName}: {temp}°C";
+        city = cityName; // Set city for favorites
+        await GetForecast(location.Latitude, location.Longitude);
+    }
+
+    private async Task GetWeatherForCity()
+    {
+        try
+        {
+            var response = await Http.GetStringAsync($"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={ApiKey}&units=metric");
+            var json = System.Text.Json.JsonDocument.Parse(response);
+            var cityName = json.RootElement.GetProperty("name").GetString();
+            var temp = json.RootElement.GetProperty("main").GetProperty("temp").GetDouble();
+            weather = $"{cityName}: {temp}°C";
+            await GetForecast();
+        }
+        catch (HttpRequestException)
+        {
+            errorMessage = "City not found or network error. Please try again.";
+        }
+    }
+
+    private async Task GetForecast(double? lat = null, double? lon = null)
+    {
+        string url = lat.HasValue && lon.HasValue
+            ? $"https://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&appid={ApiKey}&units=metric"
+            : $"https://api.openweathermap.org/data/2.5/forecast?q={city}&appid={ApiKey}&units=metric";
+
+        var response = await Http.GetStringAsync(url);
+        var json = System.Text.Json.JsonDocument.Parse(response);
+        forecast = json.RootElement.GetProperty("list")
+            .EnumerateArray()
+            .Where((item, index) => index % 8 == 0)
+            .Take(5)
+            .Select(item => new WeatherForecast
+            {
+                Date = item.GetProperty("dt_txt").GetString()!.Split(' ')[0],
+                Temp = item.GetProperty("main").GetProperty("temp").GetDouble(),
+                Weather = item.GetProperty("weather")[0].GetProperty("description").GetString()!
+            }).ToList();
+    }
+
+    private async Task LoadTopCitiesWeather()
+    {
+        topCitiesWeather.Clear();
+        foreach (var topCity in topCities)
+        {
+            try
+            {
+                var response = await Http.GetStringAsync($"https://api.openweathermap.org/data/2.5/weather?q={topCity}&appid={ApiKey}&units=metric");
+                var json = System.Text.Json.JsonDocument.Parse(response);
+                var cityName = json.RootElement.GetProperty("name").GetString();
+                var temp = json.RootElement.GetProperty("main").GetProperty("temp").GetDouble();
+                var weatherDesc = json.RootElement.GetProperty("weather")[0].GetProperty("description").GetString();
+                topCitiesWeather.Add(new TopCityWeather
+                {
+                    City = cityName!,
+                    Temp = temp,
+                    Weather = weatherDesc!
+                });
+            }
+            catch (Exception)
+            {
+                // Skip failed cities silently
+            }
+        }
+        StateHasChanged();
+    }
+
+    private async Task AddToFavorites()
+    {
+        if (string.IsNullOrEmpty(city) || favoriteCities.Contains(city)) return;
+
+        // Add to MongoDB
+        await MongoDbService.AddFavoriteCityAsync(city);
+
+        // Add to local list and LocalStorage (optional, for consistency)
+        favoriteCities.Add(city);
+        await LocalStorage.SetItemAsync("favorites", favoriteCities);
+
+        // Show success message
+        isAdded = true;
+        StateHasChanged();
+        await Task.Delay(2000);
+        isAdded = false;
+        StateHasChanged();
+    }
+
+    private class WeatherForecast
+    {
+        public string Date { get; set; } = "";
+        public double Temp { get; set; }
+        public string Weather { get; set; } = "";
+    }
+
+    private class TopCityWeather
+    {
+        public string City { get; set; } = "";
+        public double Temp { get; set; }
+        public string Weather { get; set; } = "";
+    }
+
+    private class Geolocation
+    {
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
+    }
+}

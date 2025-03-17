@@ -1,0 +1,138 @@
+﻿@page "/favorites"
+@using Blazored.LocalStorage
+@using MongoDB.Driver
+@inject ILocalStorageService LocalStorage
+@inject NavigationManager Navigation
+@inject IMongoClient MongoClient
+@inject IJSRuntime JS
+
+<PageTitle>Favorites</PageTitle>
+
+<style>
+    /* [Your existing styles remain unchanged] */
+</style>
+
+<div class="flex flex-col items-center p-6 min-h-screen text-white">
+    <h1 class="text-4xl font-bold mb-6 shadow-lg p-2 rounded text-white bg-black bg-opacity-50">❤️ Favorite Cities</h1>
+    <button @onclick="GoBack" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-md shadow-lg mb-6">⬅ Back</button>
+
+    @if (isLoading)
+    {
+        <p class="text-white text-lg">Loading favorites...</p>
+    }
+    else if (errorMessage != null)
+    {
+        <p class="text-red-500 text-lg">@errorMessage</p>
+    }
+    else if (favoriteCities.Any())
+    {
+        <div class="fav-container">
+            @foreach (var city in favoriteCities)
+            {
+                <div class="fav-item">
+                    <p class="fav-date">@city</p>
+                    <button @onclick="() => RemoveFromFavorites(city)" class="remove-btn">Remove</button>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <p class="text-white text-lg">No favorite cities added yet.</p>
+    }
+</div>
+
+@code {
+    private List<string> favoriteCities = new();
+    private IMongoCollection<FavoriteCity> favoritesCollection;
+    private bool isLoading = true;
+    private string errorMessage;
+
+    private class FavoriteCity
+    {
+        public MongoDB.Bson.ObjectId Id { get; set; }
+        public string Name { get; set; }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            isLoading = true;
+            errorMessage = null;
+
+            // Initialize MongoDB connection
+            var database = MongoClient.GetDatabase("WeatherApp");
+            favoritesCollection = database.GetCollection<FavoriteCity>("favorites");
+
+            // Load favorites from MongoDB
+            var mongoFavorites = await favoritesCollection.Find(_ => true).ToListAsync();
+            favoriteCities = mongoFavorites.Select(f => f.Name).ToList();
+
+            // Sync with local storage
+            var localFavorites = await LocalStorage.GetItemAsync<List<string>>("favorites") ?? new List<string>();
+            
+            // Merge local storage with MongoDB data
+            foreach (var city in localFavorites)
+            {
+                if (!favoriteCities.Contains(city))
+                {
+                    await AddToMongoDB(city);
+                    favoriteCities.Add(city);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading favorites: {ex.Message}";
+            await JS.InvokeVoidAsync("console.error", $"Error in Favorites: {ex.Message}", ex.StackTrace);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void GoBack()
+    {
+        Navigation.NavigateTo("/");
+    }
+
+    private async Task RemoveFromFavorites(string city)
+    {
+        try
+        {
+            // Remove from in-memory list
+            favoriteCities.Remove(city);
+
+            // Remove from MongoDB
+            await favoritesCollection.DeleteOneAsync(f => f.Name == city);
+
+            // Update LocalStorage
+            await LocalStorage.SetItemAsync("favorites", favoriteCities);
+
+            StateHasChanged(); // Ensure UI updates
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error removing favorite: {ex.Message}";
+            await JS.InvokeVoidAsync("console.error", $"Error removing favorite: {ex.Message}", ex.StackTrace);
+            favoriteCities.Add(city); // Restore if failed
+        }
+    }
+
+    private async Task AddToMongoDB(string city)
+    {
+        try
+        {
+            var favorite = new FavoriteCity { Name = city };
+            await favoritesCollection.InsertOneAsync(favorite);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error adding to MongoDB: {ex.Message}";
+            await JS.InvokeVoidAsync("console.error", $"Error adding to MongoDB: {ex.Message}", ex.StackTrace);
+            throw; // Re-throw to handle in caller
+        }
+    }
+}

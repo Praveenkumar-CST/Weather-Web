@@ -1,0 +1,67 @@
+﻿@page "/history"
+
+<h3>Enter Name</h3>
+
+<input @bind="Name" placeholder="Enter your name..." />
+<button @onclick="SaveName">Save</button>
+
+<p>@Message</p>
+
+@code {
+    private string Name { get; set; } = string.Empty;
+    private string Message { get; set; } = string.Empty;
+
+    private MongoClient _client;
+    private IMongoDatabase _database;
+    private IMongoCollection<NameEntry> _collection;
+
+    public History()
+    {
+        try
+        {
+            Console.WriteLine("Initializing MongoDB Connection...");
+            string connectionString = "mongodb://localhost:27017";
+            _client = new MongoClient(connectionString);
+            _database = _client.GetDatabase("MyDatabase");
+            _collection = _database.GetCollection<NameEntry>("History");
+            Console.WriteLine("MongoDB Connected Successfully!");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"MongoDB Connection Error: {ex.Message}");
+            Message = $"Error: {ex.Message}";
+        }
+    }
+
+    private async Task SaveName()
+    {
+        try
+        {
+            Console.WriteLine($"Saving Name: {Name}");
+
+            if (!string.IsNullOrWhiteSpace(Name))
+            {
+                var entry = new NameEntry { Id = ObjectId.GenerateNewId().ToString(), Name = Name };
+                await _collection.InsertOneAsync(entry);
+                Message = $"Name '{Name}' saved successfully!";
+                Console.WriteLine("Save Successful");
+                Name = string.Empty;
+            }
+            else
+            {
+                Message = "Please enter a name!";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+            Message = $"Error: {ex.Message}";
+        }
+    }
+
+    public class NameEntry
+    {
+        public string Id { get; set; }
+        public string Name { get; set; }
+    }
+}

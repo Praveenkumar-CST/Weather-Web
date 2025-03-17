@@ -1,0 +1,67 @@
+﻿@page "/favorites"
+@using Blazored.LocalStorage
+@inject ILocalStorageService LocalStorage
+@inject MongoDbService MongoDbService
+@inject NavigationManager Navigation
+
+<PageTitle>Favorites</PageTitle>
+
+<style>
+/* Your existing styles */
+</style>
+
+<div class="flex flex-col items-center p-6 min-h-screen text-white">
+    <h1 class="text-4xl font-bold mb-6 shadow-lg p-2 rounded text-white bg-black bg-opacity-50">❤️ Favorite Cities</h1>
+    <button @onclick="GoBack" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-md shadow-lg mb-6">⬅ Back</button>
+
+    @if (favoriteCities.Any())
+    {
+        <div class="fav-container">
+            @foreach (var city in favoriteCities)
+            {
+                <div class="fav-item">
+                    <p class="fav-date">@city</p>
+                    <button @onclick="() => RemoveFromFavorites(city)" class="remove-btn">Remove</button>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <p class="text-white text-lg">No favorite cities added yet.</p>
+    }
+</div>
+
+@code {
+    private List<string> favoriteCities = new();
+    private Weather? weather = null;  // Making Weather nullable to avoid issues
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Fetch favorite cities from MongoDB
+        favoriteCities = await MongoDbService.GetFavoriteCities();
+
+        // Optionally, initialize weather for each city or just handle initialization
+        if (favoriteCities.Any())
+        {
+            weather = new Weather { Temperature = 25, Condition = "Sunny" }; // Default data for example
+        }
+    }
+
+    private void GoBack()
+    {
+        Navigation.NavigateTo("/");
+    }
+
+    private async Task AddToFavorites(string city)
+    {
+        await MongoDbService.AddFavoriteCity(city);
+        favoriteCities = await MongoDbService.GetFavoriteCities();
+    }
+
+    private async Task RemoveFromFavorites(string city)
+    {
+        await MongoDbService.RemoveFavoriteCity(city);
+        favoriteCities = await MongoDbService.GetFavoriteCities();
+    }
+}

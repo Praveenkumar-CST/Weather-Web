@@ -1,0 +1,188 @@
+﻿@page "/"
+
+@using System.Net.Http.Json
+@using Blazored.LocalStorage 
+@using BlazorApp11.Services
+@inject NavigationManager Navigation
+@inject ILocalStorageService LocalStorage
+@inject IJSRuntime JSRuntime
+@inject HttpClient Http
+@inject MongoDbService MongoDbService
+
+<PageTitle>Weather Prediction</PageTitle>
+
+<style>
+body {
+    background: url('/mn.jpg') no-repeat center center fixed;
+    background-size: cover;
+    height: 100vh;
+    margin: 0;
+    overflow: hidden;
+}
+.forecast-container, .dashboard-container {
+    background: transparent;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+}
+.forecast-item, .dashboard-item {
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 15px;
+    margin: 10px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s;
+    width: 160px;
+}
+.forecast-item:hover, .dashboard-item:hover {
+    transform: scale(1.1);
+}
+.forecast-date, .dashboard-city {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+.forecast-temp, .dashboard-temp {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 6px;
+    color: #FFD700;
+}
+.forecast-weather, .dashboard-weather {
+    font-size: 14px;
+    text-transform: capitalize;
+}
+.success-message, .error-message {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+.success-message {
+    background: rgba(0, 128, 0, 0.8);
+}
+.error-message {
+    background: rgba(255, 0, 0, 0.8);
+}
+.loading {
+    font-size: 18px;
+    color: #FFD700;
+}
+</style>
+
+<div class="flex flex-col items-center p-6 min-h-screen text-white">
+    <h1 class="text-4xl font-bold mb-6 shadow-lg p-2 rounded text-white bg-black bg-opacity-50">🌦 Weather Prediction 🌤</h1>
+
+    <div class="flex gap-2 mb-6">
+        <input @bind="city" @bind:event="oninput" placeholder="Enter city (or leave blank for current location)" class="p-3 border rounded-md shadow-md text-black" />
+        <button @onclick="GetWeather" disabled="@isLoading" class="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded-md shadow-lg">@(isLoading ? "Loading..." : "Get Weather")</button>
+        <button @onclick="AddToFavorites" disabled="@isLoading" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md shadow-lg">❤️ Fav</button>
+    </div>
+
+    @if (isLoading)
+    {
+        <p class="loading">Loading weather data...</p>
+    }
+    else if (!string.IsNullOrEmpty(weather))
+    {
+        <div class="bg-black bg-opacity-50 p-6 rounded-lg shadow-xl text-center w-80 mb-4">
+            <p class="text-xl font-semibold text-white">@weather</p>
+        </div>
+    }
+
+    <h2 class="text-xl font-bold text-white mt-6">Favorite Cities</h2>
+    <div class="flex flex-wrap gap-4">
+        @foreach (var favCity in favoriteCities)
+        {
+            <div class="bg-gray-900 text-white p-3 rounded-md flex items-center justify-between">
+                <span>@favCity</span>
+                <button @onclick="() => RemoveFavoriteCity(favCity)" class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded">❌</button>
+            </div>
+        }
+    </div>
+
+    @if (isAdded)
+    {
+        <div class="success-message">City added to favorites successfully!</div>
+    }
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="error-message">@errorMessage</div>
+    }
+</div>
+
+@code {
+    private string city = "";
+    private string weather = "";
+    private List<string> favoriteCities = new();
+    private bool isAdded = false;
+    private string errorMessage = "";
+    private bool isLoading = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Load favorite cities from MongoDB
+        favoriteCities = await MongoDbService.GetFavoriteCitiesAsync();
+    }
+
+    private async Task GetWeather()
+    {
+        isLoading = true;
+        errorMessage = "";
+        weather = "";
+        StateHasChanged();
+
+        try
+        {
+            var response = await Http.GetStringAsync($"https://api.openweathermap.org/data/2.5/weather?q={city}&appid=YOUR_API_KEY&units=metric");
+            var json = System.Text.Json.JsonDocument.Parse(response);
+            var cityName = json.RootElement.GetProperty("name").GetString();
+            var temp = json.RootElement.GetProperty("main").GetProperty("temp").GetDouble();
+            weather = $"{cityName}: {temp}°C";
+        }
+        catch (HttpRequestException)
+        {
+            errorMessage = "City not found or network error. Please try again.";
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task AddToFavorites()
+    {
+        if (string.IsNullOrEmpty(city) || favoriteCities.Contains(city)) return;
+
+        // Add to MongoDB
+        await MongoDbService.AddFavoriteCityAsync(city);
+
+        // Refresh favorites list
+        favoriteCities = await MongoDbService.GetFavoriteCitiesAsync();
+
+        // Show success message
+        isAdded = true;
+        StateHasChanged();
+        await Task.Delay(2000);
+        isAdded = false;
+        StateHasChanged();
+    }
+
+    private async Task RemoveFavoriteCity(string favCity)
+    {
+        // Remove from MongoDB
+        await MongoDbService.RemoveFavoriteCityAsync(favCity);
+
+        // Refresh favorites list
+        favoriteCities = await MongoDbService.GetFavoriteCitiesAsync();
+
+        StateHasChanged();
+    }
+}

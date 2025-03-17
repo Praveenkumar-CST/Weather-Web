@@ -1,0 +1,81 @@
+﻿@page "/welcome"
+
+@inject NavigationManager Navigation
+@inject HttpClient Http
+
+<h3>@(isSignIn ? "Sign In" : "Sign Up")</h3>
+
+<div class="auth-container">
+    <EditForm Model="@authModel" OnValidSubmit="@(isSignIn ? HandleSignIn : HandleSignUp)">
+        <DataAnnotationsValidator />
+        <div class="form-group">
+            <label>Email</label>
+            <InputText @bind-Value="authModel.Email" class="form-control" />
+        </div>
+        <div class="form-group">
+            <label>Password</label>
+            <InputText @bind-Value="authModel.Password" type="password" class="form-control" />
+        </div>
+        <button type="submit" class="btn btn-primary">@(isSignIn ? "Sign In" : "Sign Up")</button>
+        <button type="button" class="btn btn-link" @onclick="() => isSignIn = !isSignIn">
+            @(isSignIn ? "Don't have an account? Sign Up" : "Already have an account? Sign In")
+        </button>
+    </EditForm>
+    
+    @if (!string.IsNullOrEmpty(message))
+    {
+        <p class="text-danger">@message</p>
+    }
+</div>
+
+@code {
+    private AuthModel authModel = new();
+    private string message = "";
+    private bool isSignIn = true;
+    private readonly string supabaseUrl = "https://uzvvxayexmusumorxjtx.supabase.co";
+    private readonly string anonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV6dnZ4YXlleG11c3Vtb3J4anR4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkyNjQyMzMsImV4cCI6MjA1NDg0MDIzM30.lPqH-Xv0BYuAr-KprV-HdbDktFBMcqUv5_ZCuEpxQNU";
+
+    private async Task HandleSignIn()
+    {
+        var response = await Http.PostAsJsonAsync($"{supabaseUrl}/auth/v1/token?grant_type=password", new
+        {
+            email = authModel.Email,
+            password = authModel.Password
+        }, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+        
+        if (response.IsSuccessStatusCode)
+        {
+            message = "Sign In successful!";
+            Navigation.NavigateTo("/dashboard");
+        }
+        else
+        {
+            message = "Invalid credentials. Try again.";
+        }
+    }
+    
+    private async Task HandleSignUp()
+    {
+        var response = await Http.PostAsJsonAsync($"{supabaseUrl}/auth/v1/signup", new
+        {
+            email = authModel.Email,
+            password = authModel.Password
+        }, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+        
+        if (response.IsSuccessStatusCode)
+        {
+            message = "Sign Up successful! Check your email to verify.";
+            isSignIn = true;
+        }
+        else
+        {
+            message = "Sign Up failed. Try again.";
+        }
+    }
+    
+    private class AuthModel
+    {
+        public string Email { get; set; } = "";
+        public string Password { get; set; } = "";
+    }
+}

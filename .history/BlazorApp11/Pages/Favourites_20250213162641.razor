@@ -1,0 +1,140 @@
+﻿@page "/favorites"
+
+@inject MongoDbService MongoService
+@inject NavigationManager Navigation
+
+<PageTitle>Favorites</PageTitle>
+
+<style>
+body {
+    background: url('/mn.jpg') no-repeat center center fixed;
+    background-size: cover;
+    height: 100vh;
+    margin: 0;
+    overflow: hidden;
+}
+.fav-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+    padding: 20px;
+}
+.fav-item {
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 20px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s;
+    width: 220px;
+}
+.fav-item:hover {
+    transform: scale(1.05);
+}
+.remove-btn {
+    margin-top: 10px;
+    background: red;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+.remove-btn:hover {
+    background: darkred;
+}
+.add-container {
+    text-align: center;
+    margin-bottom: 20px;
+}
+.add-input {
+    padding: 8px;
+    border-radius: 6px;
+    margin-right: 10px;
+}
+.add-btn {
+    background: green;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+.add-btn:hover {
+    background: darkgreen;
+}
+</style>
+
+<div class="flex flex-col items-center p-6 min-h-screen text-white">
+    <h1 class="text-4xl font-bold mb-6 shadow-lg p-2 rounded text-white bg-black bg-opacity-50">❤️ Favorite Cities</h1>
+    
+    <button @onclick="GoBack" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-md shadow-lg mb-6">⬅ Back</button>
+
+    <!-- Input Box to Add City -->
+    <div class="add-container">
+        <input type="text" @bind="newCityName" class="add-input" placeholder="Enter city name..." />
+        <button @onclick="AddToFavorites" class="add-btn">➕ Add</button>
+    </div>
+
+    @if (favoriteCities.Any())
+    {
+        <div class="fav-container">
+            @foreach (var city in favoriteCities)
+            {
+                <div class="fav-item">
+                    <p class="fav-date">@city.Name</p>
+                    <button @onclick="() => RemoveFromFavorites(city.Name)" class="remove-btn">Remove</button>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <p class="text-white text-lg">No favorite cities added yet.</p>
+    }
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <p class="text-red-500">Error: @errorMessage</p>
+    }
+</div>
+
+@code {
+    private List<City> favoriteCities = new();
+    private string newCityName = "";
+    private string errorMessage = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            favoriteCities = await MongoService.GetFavoriteCities();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+    }
+
+    private void GoBack()
+    {
+        Navigation.NavigateTo("/");
+    }
+
+    private async Task AddToFavorites()
+    {
+        if (!string.IsNullOrWhiteSpace(newCityName))
+        {
+            var city = new City { Name = newCityName };
+            await MongoService.AddToFavorites(city);
+            favoriteCities = await MongoService.GetFavoriteCities(); // Refresh list
+            newCityName = ""; // Clear input box
+        }
+    }
+
+    private async Task RemoveFromFavorites(string cityName)
+    {
+        await MongoService.RemoveFromFavorites(cityName);
+        favoriteCities = await MongoService.GetFavoriteCities(); // Refresh list
+    }
+}

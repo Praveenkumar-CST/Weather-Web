@@ -1,0 +1,60 @@
+[
+  {
+    "ContainingType": "WeatherBackend.Controllers.UserFavoritesController",
+    "Method": "GetFavorites",
+    "RelativePath": "api/UserFavorites",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "WeatherBackend.Controllers.UserFavoritesController",
+    "Method": "AddFavoriteCity",
+    "RelativePath": "api/UserFavorites/add",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "WeatherBackend.Controllers.UserFavoritesController\u002BAddOrRemoveCityRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "WeatherBackend.Controllers.UserFavoritesController",
+    "Method": "RemoveFavoriteCity",
+    "RelativePath": "api/UserFavorites/remove",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "WeatherBackend.Controllers.UserFavoritesController\u002BAddOrRemoveCityRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "WeatherBackend.Controllers.UserFavoritesController",
+    "Method": "GetFavoritesByEmail",
+    "RelativePath": "favorites/{email}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "email",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  }
+]

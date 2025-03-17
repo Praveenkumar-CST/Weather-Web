@@ -1,0 +1,43 @@
+﻿@page "/history"
+
+@using Blazored.LocalStorage
+@inject ILocalStorageService LocalStorage
+@inject NavigationManager Navigation
+
+<PageTitle>History</PageTitle>
+
+<div class="flex flex-col items-center p-6 min-h-screen text-white">
+    <h1 class="text-4xl font-bold mb-6 shadow-lg p-2 rounded text-white bg-black bg-opacity-50">📜 History</h1>
+
+    <ul class="mb-6">
+        @foreach (var city in favoriteCities)
+        {
+            <li class="text-lg text-white">@city</li>
+        }
+    </ul>
+
+    @if (favoriteCities.Count > 0)
+    {
+        <button @onclick="ClearHistory" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md shadow-lg">Clear History</button>
+    }
+    else
+    {
+        <p class="text-gray-500">No history to show.</p>
+    }
+</div>
+
+@code {
+    private List<string> favoriteCities = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        favoriteCities = await LocalStorage.GetItemAsync<List<string>>("favorites") ?? new List<string>();
+    }
+
+    private async Task ClearHistory()
+    {
+        favoriteCities.Clear();
+        await LocalStorage.SetItemAsync("favorites", favoriteCities);
+        StateHasChanged();
+    }
+}

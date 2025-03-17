@@ -1,0 +1,104 @@
+@page "/welcome"
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+@using System.Net.Http.Headers // For Authorization header
+@using System.Net.Http.Json
+
+<h1>Welcome</h1>
+
+<div>
+    <h2>Sign In</h2>
+    <EditForm Model="@signInModel" OnValidSubmit="@HandleSignIn">
+       // ... (Your EditForm code as before)
+    </EditForm>
+
+     <h2>Sign Up</h2>
+    <EditForm Model="@signUpModel" OnValidSubmit="@HandleSignUp">
+       // ... (Your EditForm code as before)
+    </EditForm>
+</div>
+
+
+@code {
+    private SignInModel signInModel = new();
+    private SignUpModel signUpModel = new();
+    private string? signInError;
+    private string? signUpError;
+
+    private async Task HandleSignIn()
+    {
+        signInError = null;
+        try
+        {
+            var response = await Http.PostAsJsonAsync("api/auth/signin", signInModel);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadFromJsonAsync<ErrorResponse>(); // Deserialize error
+                signInError = errorContent?.Error; // Display the error message
+                return; // Stop execution
+            }
+
+            var authResponse = await response.Content.ReadFromJsonAsync<AuthResponse>();
+            if (authResponse != null)
+            {
+                // Store the token (e.g., in local storage)
+                await localStorage.SetItemAsync("jwt_token", authResponse.AccessToken);
+
+                // Set AuthenticationState (you'll need a custom AuthenticationStateProvider)
+                // await authStateProvider.GetAuthenticationStateAsync(); // Trigger re-render with auth state
+
+                NavigationManager.NavigateTo("/protectedpage"); // Redirect after login
+            }
+        }
+        catch (Exception ex)
+        {
+            signInError = "An error occurred: " + ex.Message;
+        }
+    }
+
+    private async Task HandleSignUp()
+    {
+        signUpError = null;
+        try
+        {
+            var response = await Http.PostAsJsonAsync("api/auth/signup", signUpModel);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadFromJsonAsync<ErrorResponse>(); // Deserialize error
+                signUpError = errorContent?.Error; // Display the error message
+                return; // Stop execution
+            }
+
+            Console.WriteLine("Sign-up successful!");
+            // ... any other logic after sign-up
+        }
+        catch (Exception ex)
+        {
+            signUpError = "An error occurred: " + ex.Message;
+        }
+    }
+
+
+    public class SignInModel
+    {
+        // ... (as before)
+    }
+
+    public class SignUpModel
+    {
+        // ... (as before)
+    }
+
+    public class AuthResponse // DTO for successful login response
+    {
+        public string AccessToken { get; set; } = string.Empty;
+        public Supabase.Gotrue.User User { get; set; }
+    }
+
+    public class ErrorResponse // DTO for error responses
+    {
+        public string? Error { get; set; }
+    }
+}

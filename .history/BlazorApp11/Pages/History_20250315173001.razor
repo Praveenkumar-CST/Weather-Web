@@ -1,0 +1,62 @@
+﻿@page "/history"
+
+<h3>Send City Name</h3>
+
+<EditForm Model="cityModel" OnValidSubmit="SendCity">
+    <DataAnnotationsValidator />
+    <div>
+        <label for="city">City Name:</label>
+        <InputText id="city" @bind-Value="cityModel.Name" class="form-control" />
+        <ValidationMessage For="() => cityModel.Name" />
+    </div>
+    <button type="submit" class="btn btn-primary mt-2">Send</button>
+</EditForm>
+
+@if (!string.IsNullOrEmpty(message))
+{
+    <p>@message</p>
+}
+
+<h3>Sent Cities</h3>
+<ul>
+    @foreach (var city in sentCities)
+    {
+        <li>@city</li>
+    }
+</ul>
+
+@code {
+    private CityModel cityModel = new CityModel();
+    private string message;
+    private List<string> sentCities = new List<string>();
+
+    [Inject]
+    private HttpClient Http { get; set; }
+
+    private async Task SendCity()
+    {
+        try
+        {
+            var response = await Http.PostAsJsonAsync("http://127.0.0.1:5188/api/UserFavorites", cityModel);
+            if (response.IsSuccessStatusCode)
+            {
+                message = "City sent successfully!";
+                sentCities.Add(cityModel.Name); // Store in frontend list
+                cityModel.Name = string.Empty; // Clear input
+            }
+            else
+            {
+                message = "Error sending city.";
+            }
+        }
+        catch (Exception ex)
+        {
+            message = $"Request failed: {ex.Message}";
+        }
+    }
+
+    public class CityModel
+    {
+        public string Name { get; set; } = string.Empty;
+    }
+}

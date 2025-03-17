@@ -1,0 +1,84 @@
+﻿@page "/"
+
+@using System.Net.Http.Json
+<PageTitle>Weather Prediction</PageTitle>
+
+<div class="flex flex-col items-center p-6 bg-gradient-to-r from-blue-400 to-blue-600 min-h-screen text-white">
+    <h1 class="text-4xl font-bold mb-6 shadow-lg p-2 rounded">🌦 Weather Prediction 🌤</h1>
+    <div class="flex gap-2 mb-6">
+        <input @bind="city" placeholder="Enter city" class="p-3 border rounded-md shadow-md text-black" />
+        <button @onclick="GetWeather" class="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded-md shadow-lg">Get Weather</button>
+    </div>
+
+    @if (!string.IsNullOrEmpty(weather))
+    {
+        <div class="bg-white text-black p-6 rounded-lg shadow-xl text-center w-80">
+            <p class="text-xl font-semibold">@weather</p>
+        </div>
+    }
+
+    @if (forecast != null)
+    {
+        <div class="mt-8">
+            <h2 class="text-2xl font-bold mb-4 underline">5-Day Forecast 📅</h2>
+            <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-lg">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-yellow-500 text-white">
+                            <th class="p-3">Date</th>
+                            <th class="p-3">Temperature (°C)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var day in forecast)
+                        {
+                            <tr class="border-t border-gray-300 hover:bg-gray-200 text-black">
+                                <td class="p-3">@day.Date</td>
+                                <td class="p-3 font-semibold">@day.Temp°C</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private string city = "";
+    private string weather = "";
+    private List<ForecastDay> forecast;
+    
+    private async Task GetWeather()
+    {
+        if (!string.IsNullOrEmpty(city))
+        {
+            var http = new HttpClient();
+            var apiKey = "027e44160659370f158944e22e8f23aa";
+            var response = await http.GetStringAsync($"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={apiKey}&units=metric");
+            var json = System.Text.Json.JsonDocument.Parse(response);
+            var cityName = json.RootElement.GetProperty("name").GetString();
+            var temp = json.RootElement.GetProperty("main").GetProperty("temp").GetDouble();
+            weather = $"{cityName}: {temp}°C";
+
+            // Fetch 5-day forecast
+            var forecastResponse = await http.GetStringAsync($"https://api.openweathermap.org/data/2.5/forecast?q={city}&appid={apiKey}&units=metric");
+            var forecastJson = System.Text.Json.JsonDocument.Parse(forecastResponse);
+            var forecastList = forecastJson.RootElement.GetProperty("list").EnumerateArray()
+                .Where((x, index) => index % 8 == 0)
+                .Select(x => new ForecastDay
+                {
+                    Date = x.GetProperty("dt_txt").GetString().Split(' ')[0],
+                    Temp = x.GetProperty("main").GetProperty("temp").GetDouble()
+                }).ToList();
+            
+            forecast = forecastList;
+        }
+    }
+
+    private class ForecastDay
+    {
+        public string Date { get; set; }
+        public double Temp { get; set; }
+    }
+}

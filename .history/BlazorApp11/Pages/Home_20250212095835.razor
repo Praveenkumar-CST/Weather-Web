@@ -1,0 +1,34 @@
+﻿@page "/"
+
+<PageTitle>Weather Prediction</PageTitle>
+
+<h1>Weather Prediction</h1>
+
+<input @bind="city" placeholder="Enter city" />
+<button @onclick="GetWeather">Get Weather</button>
+
+@if (!string.IsNullOrEmpty(weather))
+{
+    <p>@weather</p>
+}
+
+@code {
+    private string city = "";
+    private string weather = "";
+
+    private async Task GetWeather()
+    {
+        if (!string.IsNullOrEmpty(city))
+        {
+            var http = new HttpClient();
+            var apiKey = "027e44160659370f158944e22e8f23aa";
+            var response = await http.GetStringAsync($"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={apiKey}&units=metric");
+
+            var json = System.Text.Json.JsonDocument.Parse(response);
+            var cityName = json.RootElement.GetProperty("name").GetString();
+            var temp = json.RootElement.GetProperty("main").GetProperty("temp").GetDouble();
+
+            weather = $"{cityName}: {temp}°C";
+        }
+    }
+}

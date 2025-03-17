@@ -1,0 +1,43 @@
+﻿@page "/favorites"
+
+@using Blazored.LocalStorage
+@inject ILocalStorageService LocalStorage
+@inject NavigationManager Navigation
+
+<PageTitle>Favorites</PageTitle>
+
+<div class="flex flex-col items-center p-6 min-h-screen text-white" style="background: url('/mn.jpg') no-repeat center center fixed; background-size: cover;">
+    <h1 class="text-4xl font-bold mb-6 shadow-lg p-2 rounded text-white bg-black bg-opacity-50">❤️ Favorite Cities</h1>
+    
+    <button @onclick="GoBack" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-md shadow-lg mb-6">⬅ Back</button>
+
+    @if (favoriteCities.Any())
+    {
+        <div class="flex flex-wrap gap-4 justify-center">
+            @foreach (var city in favoriteCities)
+            {
+                <div class="bg-black bg-opacity-50 p-4 rounded-lg shadow-xl text-center w-64">
+                    <p class="text-xl font-semibold text-white">@city</p>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <p class="text-white text-lg">No favorite cities added yet.</p>
+    }
+</div>
+
+@code {
+    private List<string> favoriteCities = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        favoriteCities = await LocalStorage.GetItemAsync<List<string>>("favorites") ?? new List<string>();
+    }
+
+    private void GoBack()
+    {
+        Navigation.NavigateTo("/");
+    }
+}

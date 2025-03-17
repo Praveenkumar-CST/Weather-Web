@@ -1,0 +1,91 @@
+﻿@page "/"
+@using Blazored.LocalStorage
+@inject ILocalStorageService LocalStorage
+@inject NavigationManager Navigation
+
+<PageTitle>Weather App</PageTitle>
+
+<style>
+body {
+    background: url('/mn.jpg') no-repeat center center fixed;
+    background-size: cover;
+    height: 100vh;
+    margin: 0;
+    overflow: hidden;
+}
+
+.container {
+    padding: 20px;
+    text-align: center;
+    color: white;
+}
+
+.city-input {
+    padding: 10px;
+    font-size: 18px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+}
+
+.add-btn {
+    padding: 10px 15px;
+    background-color: #28a745;
+    border: none;
+    border-radius: 5px;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.add-btn:hover {
+    background-color: #218838;
+}
+
+.message {
+    margin-top: 20px;
+    font-size: 18px;
+    color: #ffd700;
+}
+</style>
+
+<div class="container">
+    <h1 class="text-4xl font-bold mb-4">Weather App</h1>
+    
+    <input type="text" class="city-input" placeholder="Enter city" @bind="city" />
+    
+    <button class="add-btn" @onclick="AddToFavorites">Add to Favorites</button>
+    
+    @if (isAdded)
+    {
+        <p class="message">City added to favorites!</p>
+    }
+
+    <button @onclick="GoToFavorites" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-md shadow-lg mt-6">Go to Favorites</button>
+</div>
+
+@code {
+    private string city;
+    private bool isAdded;
+    private List<string> favoriteCities = new List<string>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        favoriteCities = await LocalStorage.GetItemAsync<List<string>>("favorites") ?? new List<string>();
+    }
+
+    private async Task AddToFavorites()
+    {
+        if (!string.IsNullOrEmpty(city) && !favoriteCities.Contains(city))
+        {
+            favoriteCities.Add(city);
+            await LocalStorage.SetItemAsync("favorites", favoriteCities);
+            isAdded = true;
+            StateHasChanged();
+        }
+    }
+
+    private void GoToFavorites()
+    {
+        Navigation.NavigateTo("/favorites");
+    }
+}

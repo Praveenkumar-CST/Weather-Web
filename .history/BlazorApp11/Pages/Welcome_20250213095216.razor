@@ -1,0 +1,145 @@
+@page "/welcome"
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Components
+@using Supabase
+@using Supabase.Postgrest.Models
+@using Postgrest.Attributes
+@using System.ComponentModel.DataAnnotations
+
+@inject NavigationManager Navigation
+
+<h3>Login</h3>
+
+<EditForm Model="@loginModel" OnValidSubmit="Login">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div>
+        <label>Email:</label>
+        <InputText @bind-Value="loginModel.Email" />
+    </div>
+    <div>
+        <label>Password:</label>
+        <InputText @bind-Value="loginModel.Password" Type="password" />
+    </div>
+    <button type="submit">Login</button>
+</EditForm>
+
+<p>Don't have an account? <a href="/signup">Sign Up</a></p>
+
+<hr />
+
+@page "/signup"
+<h3>Sign Up</h3>
+
+<EditForm Model="@signupModel" OnValidSubmit="SignUp">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div>
+        <label>Email:</label>
+        <InputText @bind-Value="signupModel.Email" />
+    </div>
+    <div>
+        <label>Password:</label>
+        <InputText @bind-Value="signupModel.Password" Type="password" />
+    </div>
+    <button type="submit">Sign Up</button>
+</EditForm>
+
+<p>Already have an account? <a href="/welcome">Login</a></p>
+
+@code {
+    private Supabase.Client supabase;
+
+    private LoginModel loginModel = new();
+    private SignupModel signupModel = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var url = "https://uzvvxayexmusumorxjtx.supabase.co"; // Replace with your Supabase URL
+        var key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV6dnZ4YXlleG11c3Vtb3J4anR4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkyNjQyMzMsImV4cCI6MjA1NDg0MDIzM30.lPqH-Xv0BYuAr-KprV-HdbDktFBMcqUv5_ZCuEpxQNU"; // Replace with your anon key
+
+        supabase = new Supabase.Client(url, key);
+    }
+
+    private async Task SignUp()
+    {
+        try
+        {
+            var response = await supabase.Auth.SignUp(signupModel.Email, signupModel.Password);
+
+            if (response.User != null)
+            {
+                var newUser = new User
+                {
+                    Email = signupModel.Email,
+                    Password = signupModel.Password
+                };
+
+                await supabase.From<User>().Insert(newUser);
+                Console.WriteLine($"User {signupModel.Email} registered successfully.");
+                Navigation.NavigateTo("/welcome"); // Redirect to login
+            }
+            else
+            {
+                Console.WriteLine("Signup failed.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Signup error: {ex.Message}");
+        }
+    }
+
+    private async Task Login()
+    {
+        try
+        {
+            var session = await supabase.Auth.SignIn(loginModel.Email, loginModel.Password);
+
+            if (session.User != null)
+            {
+                Console.WriteLine($"User {loginModel.Email} logged in successfully.");
+                Navigation.NavigateTo("/home"); // Redirect to home page after login
+            }
+            else
+            {
+                Console.WriteLine("Invalid credentials.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Login error: {ex.Message}");
+        }
+    }
+
+    public class LoginModel
+    {
+        [Required]
+        public string Email { get; set; } = string.Empty;
+
+        [Required]
+        public string Password { get; set; } = string.Empty;
+    }
+
+    public class SignupModel
+    {
+        [Required]
+        public string Email { get; set; } = string.Empty;
+
+        [Required]
+        public string Password { get; set; } = string.Empty;
+    }
+
+    [Table("users")]
+    public class User : BaseModel
+    {
+        [PrimaryKey("id", false)]
+        public int Id { get; set; }
+
+        [Column("email")]
+        public string Email { get; set; } = string.Empty;
+
+        [Column("password")]
+        public string Password { get; set; } = string.Empty;
+    }
+}

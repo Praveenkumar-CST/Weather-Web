@@ -1,0 +1,53 @@
+﻿// Home.razor
+@page "/"
+
+@using System.Net.Http.Json
+@inject NavigationManager Navigation
+@inject LocalStorageService LocalStorage
+
+<PageTitle>Weather Prediction</PageTitle>
+
+<div class="flex flex-col items-center p-6 min-h-screen text-white" style="background: url('/mn.jpg') no-repeat center center fixed; background-size: cover;">
+    <h1 class="text-4xl font-bold mb-6 shadow-lg p-2 rounded text-white bg-black bg-opacity-50">🌦 Weather Prediction 🌤</h1>
+    <div class="flex gap-2 mb-6">
+        <input @bind="city" placeholder="Enter city" class="p-3 border rounded-md shadow-md text-black" />
+        <button @onclick="GetWeather" class="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded-md shadow-lg">Get Weather</button>
+        <button @onclick="AddToFavorites" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md shadow-lg">❤️ Fav</button>
+    </div>
+
+    @if (!string.IsNullOrEmpty(weather))
+    {
+        <div class="bg-black bg-opacity-50 p-6 rounded-lg shadow-xl text-center w-80">
+            <p class="text-xl font-semibold text-white">@weather</p>
+        </div>
+    }
+</div>
+
+@code {
+    private string city = "";
+    private string weather = "";
+    private List<string> favoriteCities = new();
+
+    private async Task GetWeather()
+    {
+        if (!string.IsNullOrEmpty(city))
+        {
+            var http = new HttpClient();
+            var apiKey = "027e44160659370f158944e22e8f23aa";
+            var response = await http.GetStringAsync($"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={apiKey}&units=metric");
+            var json = System.Text.Json.JsonDocument.Parse(response);
+            var cityName = json.RootElement.GetProperty("name").GetString();
+            var temp = json.RootElement.GetProperty("main").GetProperty("temp").GetDouble();
+            weather = $"{cityName}: {temp}°C";
+        }
+    }
+
+    private async Task AddToFavorites()
+    {
+        if (!string.IsNullOrEmpty(city) && !favoriteCities.Contains(city))
+        {
+            favoriteCities.Add(city);
+            await LocalStorage.SetItemAsync("favorites", favoriteCities);
+        }
+    }
+}

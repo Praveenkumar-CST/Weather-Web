@@ -1,0 +1,112 @@
+﻿@page "/favorites"
+
+@using Blazored.LocalStorage
+@inject ILocalStorageService LocalStorage
+@inject NavigationManager Navigation
+
+<PageTitle>Favorites</PageTitle>
+
+<style>
+body {
+    background: url('/mn.jpg') no-repeat center center fixed;
+    background-size: cover;
+    height: 100vh;
+    margin: 0;
+    overflow: hidden;
+}
+.fav-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+    padding: 20px;
+}
+.fav-item {
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 20px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s;
+    width: 220px;
+}
+.fav-item:hover {
+    transform: scale(1.05);
+}
+.fav-date {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+.fav-temp {
+    font-size: 22px;
+    font-weight: bold;
+    margin-bottom: 6px;
+    color: #FFD700;
+}
+.fav-weather {
+    font-size: 16px;
+    text-transform: capitalize;
+}
+.remove-btn {
+    margin-top: 10px;
+    background: red;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+.remove-btn:hover {
+    background: darkred;
+}
+</style>
+
+<div class="flex flex-col items-center p-6 min-h-screen text-white">
+    <h1 class="text-4xl font-bold mb-6 shadow-lg p-2 rounded text-white bg-black bg-opacity-50">❤️ Favorite Cities</h1>
+    <button @onclick="GoBack" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-md shadow-lg mb-6">⬅ Back</button>
+
+    @if (favoriteForecasts.Any())
+    {
+        <div class="fav-container">
+            @foreach (var forecast in favoriteForecasts)
+            {
+                <div class="fav-item">
+                    <p class="fav-date">@forecast.City</p>
+                    @foreach (var day in forecast.Forecast)
+                    {
+                        <p class="fav-date">@day.Date</p>
+                        <p class="fav-temp">@day.Temp°C</p>
+                        <p class="fav-weather">@day.Weather</p>
+                    }
+                    <button @onclick="() => RemoveFromFavorites(forecast.City)" class="remove-btn">Remove</button>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <p class="text-white text-lg">No favorite cities added yet.</p>
+    }
+</div>
+
+@code {
+    private List<FavoriteForecast> favoriteForecasts = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        favoriteForecasts = await LocalStorage.GetItemAsync<List<FavoriteForecast>>("favoriteForecasts") ?? new List<FavoriteForecast>();
+    }
+
+    private void GoBack()
+    {
+        Navigation.NavigateTo("/");
+    }
+
+    private async Task RemoveFromFavorites(string city)
+    {
+        favoriteForecasts.RemoveAll(f => f.City == city);
+        await LocalStorage.SetItemAsync("favoriteForecasts", favoriteForecasts);
+    }
+
+   

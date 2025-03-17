@@ -1,0 +1,71 @@
+@page "/welcome"
+@using Microsoft.AspNetCore.Components.Forms
+@inject NavigationManager Navigation
+
+<div class="auth-container">
+    <div class="auth-box">
+        <h3>@(isSignup ? "Sign Up" : "Login")</h3>
+        
+        <EditForm Model="@(isSignup ? signupModel : loginModel)" OnValidSubmit="@(isSignup ? SignUp : Login)">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <div>
+                <label>Username:</label>
+                <InputText @bind-Value="@(isSignup ? signupModel.Username : loginModel.Username)" class="input-box" />
+            </div>
+            <div>
+                <label>Password:</label>
+                <InputText @bind-Value="@(isSignup ? signupModel.Password : loginModel.Password)" Type="password" class="input-box" />
+            </div>
+            <button type="submit" class="auth-button">@(isSignup ? "Sign Up" : "Login")</button>
+        </EditForm>
+        
+        <p>
+            @(isSignup ? "Already have an account?" : "Don't have an account?")
+            <a href="#" @onclick="ToggleForm">@(isSignup ? "Login" : "Sign Up")</a>
+        </p>
+    </div>
+</div>
+
+<style>
+    .auth-container { display: flex; justify-content: center; align-items: center; height: 100vh; }
+    .auth-box { background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); width: 300px; }
+    .input-box { width: 100%; padding: 8px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; }
+    .auth-button { width: 100%; padding: 10px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+    .auth-button:hover { background: #0056b3; }
+</style>
+
+@code {
+    private bool isSignup = false;
+    private LoginModel loginModel = new();
+    private SignupModel signupModel = new();
+    
+    private async Task Login()
+    {
+        Console.WriteLine($"Logging in {loginModel.Username}");
+        Navigation.NavigateTo("/");
+    }
+    
+    private async Task SignUp()
+    {
+        Console.WriteLine($"Signing up {signupModel.Username}");
+        Navigation.NavigateTo("/");
+    }
+    
+    private void ToggleForm()
+    {
+        isSignup = !isSignup;
+    }
+    
+    public class LoginModel
+    {
+        public string Username { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+    }
+    
+    public class SignupModel
+    {
+        public string Username { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+    }
+}

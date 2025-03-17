@@ -1,0 +1,78 @@
+@page "/welcome"
+@using Microsoft.AspNetCore.Components.Forms
+@using Supabase
+@using Supabase.Gotrue
+@inject NavigationManager Navigation
+
+<h3>Login</h3>
+
+<div class="auth-container">
+    <EditForm Model="@authModel" OnValidSubmit="Login">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="form-group">
+            <label>Email:</label>
+            <InputText @bind-Value="authModel.Email" class="form-control" />
+        </div>
+        <div class="form-group">
+            <label>Password:</label>
+            <InputText @bind-Value="authModel.Password" Type="password" class="form-control" />
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block">Login</button>
+    </EditForm>
+
+    <p class="toggle-text">
+        Don't have an account?
+        <a href="#" @onclick="NavigateToSignup">Sign Up</a>
+    </p>
+
+    @if (!string.IsNullOrEmpty(message))
+    {
+        <p class="message">@message</p>
+    }
+</div>
+
+@code {
+    private AuthModel authModel = new();
+    private Supabase.Client supabase;
+    private string message = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        supabase = new Supabase.Client("https://uzvvxayexmusumorxjtx.supabase.co", 
+            "your-supabase-key");
+    }
+
+    private async Task Login()
+    {
+        try
+        {
+            var response = await supabase.Auth.SignIn(authModel.Email, authModel.Password);
+            if (response?.User != null)
+            {
+                Navigation.NavigateTo("/home");
+            }
+            else
+            {
+                message = "Incorrect credentials";
+            }
+        }
+        catch (Exception ex)
+        {
+            message = $"Error: {ex.Message}";
+        }
+    }
+
+    private void NavigateToSignup()
+    {
+        Navigation.NavigateTo("/signup");
+    }
+
+    public class AuthModel
+    {
+        public string Email { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+    }
+}

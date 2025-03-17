@@ -1,0 +1,28 @@
+﻿@page "/history"
+@inject MongoDbService MongoDb
+
+<h3>Enter Name</h3>
+
+<input @bind="Name" placeholder="Enter your name..." />
+<button @onclick="SaveName">Save</button>
+
+<p>@Message</p>
+
+@code {
+    private string Name { get; set; } = string.Empty;
+    private string Message { get; set; } = string.Empty;
+
+    private async Task SaveName()
+    {
+        if (!string.IsNullOrWhiteSpace(Name))
+        {
+            await MongoDb.InsertNameAsync(Name);
+            Message = $"Name '{Name}' saved successfully!";
+            Name = string.Empty;
+        }
+        else
+        {
+            Message = "Please enter a name!";
+        }
+    }
+}

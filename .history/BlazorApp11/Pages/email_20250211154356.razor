@@ -1,0 +1,36 @@
+@page "/emailauth"
+
+<h3>Login</h3>
+
+<div class="login-container">
+    <label>Email:</label>
+    <input @bind="Email" type="email" class="form-control" />
+    
+    <label>Password:</label>
+    <input @bind="Password" type="password" class="form-control" />
+    
+    <button @onclick="Login" class="btn btn-primary mt-3">Login</button>
+    
+    @if (!string.IsNullOrEmpty(Message))
+    {
+        <p class="text-danger">@Message</p>
+    }
+</div>
+
+@code {
+    private string Email { get; set; } = "";
+    private string Password { get; set; } = "";
+    private string Message { get; set; } = "";
+
+    private void Login()
+    {
+        if (Email == "dummy@example.com" && Password == "password")
+        {
+            Message = "Login successful!";
+        }
+        else
+        {
+            Message = "Invalid email or password.";
+        }
+    }
+}

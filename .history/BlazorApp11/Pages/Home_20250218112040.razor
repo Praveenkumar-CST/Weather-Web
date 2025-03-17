@@ -1,0 +1,114 @@
+﻿@page "/"
+@using MongoDB.Driver
+@inject NavigationManager Navigation
+@inject IMongoClient MongoClient
+@inject IMongoDatabase MongoDatabase
+
+<PageTitle>Weather App</PageTitle>
+
+<style>
+    body {
+        background: url('/mn.jpg') no-repeat center center fixed;
+        background-size: cover;
+        height: 100vh;
+        margin: 0;
+        overflow: hidden;
+    }
+
+    .container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 20px;
+        color: white;
+    }
+
+    .city-input {
+        padding: 10px;
+        width: 250px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+        font-size: 18px;
+    }
+
+    .add-btn {
+        background: #4CAF50;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    .message {
+        color: #FFD700;
+        font-weight: bold;
+        margin-top: 10px;
+    }
+
+    .go-favorites-btn {
+        background: #3498db;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 5px;
+        margin-top: 20px;
+    }
+</style>
+
+<div class="container">
+    <h1 class="text-4xl font-bold mb-4">Weather App</h1>
+
+    <input type="text" class="city-input" placeholder="Enter city" @bind="city" />
+
+    <button class="add-btn" @onclick="AddToFavorites">Add to Favorites</button>
+
+    @if (isAdded)
+    {
+        <p class="message">City added to favorites!</p>
+    }
+
+    <button @onclick="GoToFavorites" class="go-favorites-btn">Go to Favorites</button>
+</div>
+
+@code {
+    private string city;
+    private bool isAdded;
+    private List<string> favoriteCities = new List<string>();
+
+    // MongoDB Collection reference
+    private IMongoCollection<City> _cityCollection;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Connect to MongoDB Database and collection
+        _cityCollection = MongoDatabase.GetCollection<City>("favoriteCities");
+
+        // Fetch existing favorites from MongoDB
+        var cities = await _cityCollection.Find(_ => true).ToListAsync();
+        favoriteCities = cities.Select(c => c.Name).ToList();
+    }
+
+    private async Task AddToFavorites()
+    {
+        if (!string.IsNullOrEmpty(city) && !favoriteCities.Contains(city))
+        {
+            // Add city to MongoDB
+            var cityObj = new City { Name = city };
+            await _cityCollection.InsertOneAsync(cityObj);
+
+            // Update the local list
+            favoriteCities.Add(city);
+            isAdded = true;
+            StateHasChanged();
+        }
+    }
+
+    private void GoToFavorites()
+    {
+        Navigation.NavigateTo("/favorites");
+    }
+}
+
+public class City
+{
+    public string Name { get; set; }
+}

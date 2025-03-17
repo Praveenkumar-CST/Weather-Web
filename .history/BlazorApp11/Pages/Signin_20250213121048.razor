@@ -1,0 +1,38 @@
+@code {
+    private async Task Authenticate()
+    {
+        try
+        {
+            if (supabase == null) return;
+
+            if (isLogin)
+            {
+                var response = await Task.Run(async () => await supabase.Auth.SignIn(authModel.Email, authModel.Password));
+                if (response?.User != null)
+                {
+                    Navigation.NavigateTo("/");
+                }
+                else
+                {
+                    message = "Incorrect credentials";
+                }
+            }
+            else
+            {
+                var response = await Task.Run(async () => await supabase.Auth.SignUp(authModel.Email, authModel.Password));
+                if (response?.User != null)
+                {
+                    Navigation.NavigateTo("/");
+                }
+                else
+                {
+                    message = "Signup failed";
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            message = $"Error: {ex.Message}";
+        }
+    }
+}

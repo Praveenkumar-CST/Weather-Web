@@ -1,0 +1,39 @@
+@page "/welcome"
+
+@using Microsoft.AspNetCore.Components.Forms
+
+<h3>Sign In / Sign Up</h3>
+
+<EditForm Model="userModel" OnValidSubmit="HandleSubmit">
+    <DataAnnotationsValidator />
+    <div>
+        <label>Email:</label>
+        <InputText @bind-Value="userModel.Email" class="form-control" />
+    </div>
+    <div>
+        <label>Password:</label>
+        <InputText @bind-Value="userModel.Password" class="form-control" type="password" />
+    </div>
+    <button type="submit" class="btn btn-primary">Submit</button>
+</EditForm>
+
+@if (!string.IsNullOrEmpty(message))
+{
+    <p>@message</p>
+}
+
+@code {
+    private UserModel userModel = new UserModel();
+    private string message;
+
+    private void HandleSubmit()
+    {
+        message = $"Welcome, {userModel.Email}";
+    }
+
+    private class UserModel
+    {
+        public string Email { get; set; }
+        public string Password { get; set; }
+    }
+}

@@ -1,0 +1,23 @@
+@page "/register"
+
+@inject NavigationManager Navigation
+
+<h3 class="text-center mb-4">Register</h3>
+
+<div class="container d-flex justify-content-center">
+    <div class="card p-4" style="width: 300px;">
+        <input type="text" class="form-control mb-2" placeholder="Full Name" />
+        <input type="email" class="form-control mb-2" placeholder="Email" />
+        <input type="password" class="form-control mb-2" placeholder="Password" />
+        <input type="password" class="form-control mb-2" placeholder="Confirm Password" />
+        <button class="btn btn-success w-100" @onclick="SubmitRegistration">Register</button>
+    </div>
+</div>
+
+@code {
+    private void SubmitRegistration()
+    {
+        // Add backend logic for user registration
+        Navigation.NavigateTo("/welcome");
+    }
+}

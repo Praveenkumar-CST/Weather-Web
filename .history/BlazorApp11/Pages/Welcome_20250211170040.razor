@@ -1,0 +1,119 @@
+@page "/welcome"
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+@using System.Net.Http.Json
+@using Blazored.LocalStorage
+
+<div>
+    <h2>Sign In</h2>
+    <EditForm Model="@signInModel" OnValidSubmit="@HandleSignIn">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+        <div>
+            <label>Email:</label>
+            <InputText @bind-Value="signInModel.Email" />
+        </div>
+        <div>
+            <label>Password:</label>
+            <InputText @bind-Value="signInModel.Password" type="password" />
+        </div>
+        <button type="submit">Sign In</button>
+        <p style="color: red">@signInError</p>
+    </EditForm>
+
+    <h2>Sign Up</h2>
+    <EditForm Model="@signUpModel" OnValidSubmit="@HandleSignUp">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+        <div>
+            <label>Email:</label>
+            <InputText @bind-Value="signUpModel.Email" />
+        </div>
+        <div>
+            <label>Password:</label>
+            <InputText @bind-Value="signUpModel.Password" type="password" />
+        </div>
+        <button type="submit">Sign Up</button>
+        <p style="color: red">@signUpError</p>
+    </EditForm>
+</div>
+
+@code {
+    private SignInModel signInModel = new();
+    private SignUpModel signUpModel = new();
+    private string? signInError;
+    private string? signUpError;
+    
+    [Inject] private ILocalStorageService localStorage { get; set; }
+
+    private async Task HandleSignIn()
+    {
+        signInError = null;
+        try
+        {
+            var response = await Http.PostAsJsonAsync("api/auth/signin", signInModel);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadFromJsonAsync<ErrorResponse>();
+                signInError = errorContent?.Error;
+                return;
+            }
+
+            var authResponse = await response.Content.ReadFromJsonAsync<AuthResponse>();
+            if (authResponse != null)
+            {
+                await localStorage.SetItemAsync("jwt_token", authResponse.AccessToken);
+                NavigationManager.NavigateTo("/protectedpage");
+            }
+        }
+        catch (Exception ex)
+        {
+            signInError = "An error occurred: " + ex.Message;
+        }
+    }
+
+    private async Task HandleSignUp()
+    {
+        signUpError = null;
+        try
+        {
+            var response = await Http.PostAsJsonAsync("api/auth/signup", signUpModel);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadFromJsonAsync<ErrorResponse>();
+                signUpError = errorContent?.Error;
+                return;
+            }
+
+            Console.WriteLine("Sign-up successful!");
+        }
+        catch (Exception ex)
+        {
+            signUpError = "An error occurred: " + ex.Message;
+        }
+    }
+
+    public class SignInModel
+    {
+        public string Email { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+    }
+
+    public class SignUpModel
+    {
+        public string Email { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+    }
+
+    public class AuthResponse
+    {
+        public string AccessToken { get; set; } = string.Empty;
+    }
+
+    public class ErrorResponse
+    {
+        public string? Error { get; set; }
+    }
+}

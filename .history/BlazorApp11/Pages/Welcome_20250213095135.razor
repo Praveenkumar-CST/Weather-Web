@@ -1,0 +1,110 @@
+@page "/welcome"
+@using Supabase
+@using Supabase.Gotrue
+@using Supabase.Postgrest
+@inject NavigationManager Navigation
+
+<h3>Login</h3>
+
+<EditForm Model="@loginModel" OnValidSubmit="Login">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div>
+        <label>Email:</label>
+        <InputText @bind-Value="loginModel.Email" />
+    </div>
+    <div>
+        <label>Password:</label>
+        <InputText @bind-Value="loginModel.Password" Type="password" />
+    </div>
+    <button type="submit">Login</button>
+</EditForm>
+
+<p>Don't have an account? <a href="#" @onclick="() => showSignup = true">Sign Up</a></p>
+
+@if (showSignup)
+{
+    <h3>Sign Up</h3>
+
+    <EditForm Model="@signupModel" OnValidSubmit="SignUp">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+        <div>
+            <label>Email:</label>
+            <InputText @bind-Value="signupModel.Email" />
+        </div>
+        <div>
+            <label>Password:</label>
+            <InputText @bind-Value="signupModel.Password" Type="password" />
+        </div>
+        <button type="submit">Sign Up</button>
+    </EditForm>
+}
+
+@code {
+    private Supabase.Client? supabase;
+    private bool showSignup = false;
+
+    private LoginModel loginModel = new();
+    private SignupModel signupModel = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var supabaseUrl = "https://uzvvxayexmusumorxjtx.supabase.co";
+        var supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV6dnZ4YXlleG11c3Vtb3J4anR4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkyNjQyMzMsImV4cCI6MjA1NDg0MDIzM30.lPqH-Xv0BYuAr-KprV-HdbDktFBMcqUv5_ZCuEpxQNU";
+
+        supabase = new Supabase.Client(supabaseUrl, supabaseAnonKey, new SupabaseOptions { AutoConnectRealtime = true });
+    }
+
+    private async Task Login()
+    {
+        if (supabase == null) return;
+
+        try
+        {
+            var session = await supabase.Auth.SignIn(loginModel.Email, loginModel.Password);
+
+            if (session.User != null)
+            {
+                Console.WriteLine($"Logged in as {session.User.Email}");
+                Navigation.NavigateTo("/home");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Login failed: " + ex.Message);
+        }
+    }
+
+    private async Task SignUp()
+    {
+        if (supabase == null) return;
+
+        try
+        {
+            var session = await supabase.Auth.SignUp(signupModel.Email, signupModel.Password);
+
+            if (session.User != null)
+            {
+                Console.WriteLine($"User registered: {session.User.Email}");
+                showSignup = false;  // Hide signup form after successful registration
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Signup failed: " + ex.Message);
+        }
+    }
+
+    public class LoginModel
+    {
+        public string Email { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+    }
+
+    public class SignupModel
+    {
+        public string Email { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+    }
+}

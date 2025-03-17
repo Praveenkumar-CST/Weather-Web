@@ -1,0 +1,104 @@
+﻿@page "/history"
+@using MongoDB.Driver
+@using Blazored.LocalStorage
+@inject ILocalStorageService LocalStorage
+
+<PageTitle>Enter Search City</PageTitle>
+
+<div class="flex flex-col items-center p-6 min-h-screen text-white">
+    <h1 class="text-4xl font-bold mb-6 shadow-lg p-2 rounded text-white bg-black bg-opacity-50">🔍 Enter a City</h1>
+    <div class="w-full max-w-lg">
+        <input type="text" @bind="cityInput" class="bg-black bg-opacity-50 text-white p-4 rounded-lg w-full" placeholder="Enter City Name" />
+        <button @onclick="AddCityToDb" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-md shadow-lg mt-6">Enter</button>
+    </div>
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <p class="text-red-500 mt-4">@errorMessage</p>
+    }
+</div>
+
+@code {
+    private string cityInput = string.Empty;
+    private string errorMessage = string.Empty;
+
+    // Non-nullable property for Weather
+    public WeatherData Weather { get; set; }
+
+    // OnInitializedAsync method to initialize Weather
+    protected override Task OnInitializedAsync()
+    {
+        Weather = new WeatherData(); // Initialize Weather when the component is initialized
+        return base.OnInitializedAsync();
+    }
+
+    private async Task AddCityToDb()
+    {
+        errorMessage = string.Empty; // Reset the error message before trying
+
+        if (string.IsNullOrEmpty(cityInput))
+        {
+            errorMessage = "Please enter a city name.";
+            return;
+        }
+
+        try
+        {
+            // Step 1: Check MongoDB Connection
+            var client = new MongoClient("mongodb://localhost:27017");
+            var database = client.GetDatabase("demo");
+
+            // Check if database is connected
+            var isConnected = await client.GetDatabase("admin").RunCommandAsync((Command<BsonDocument>)"{ping:1}");
+            if (isConnected == null)
+            {
+                errorMessage = "MongoDB connection failed.";
+                return;
+            }
+
+            var collection = database.GetCollection<SearchHistoryItem>("searchHistory");
+
+            var historyItem = new SearchHistoryItem
+            {
+                City = cityInput,
+                DateTime = DateTime.Now
+            };
+
+            // Step 2: Insert the new city into the database
+            await collection.InsertOneAsync(historyItem);
+
+            // Step 3: Optionally clear the input box after submission
+            cityInput = string.Empty;
+
+            // Step 4: Optionally store in LocalStorage
+            var history = await LocalStorage.GetItemAsync<List<SearchHistoryItem>>("history") ?? new List<SearchHistoryItem>();
+            history.Add(historyItem);
+            await LocalStorage.SetItemAsync("history", history);
+
+            // Optional: Add success feedback (for debugging)
+            Console.WriteLine($"City '{cityInput}' inserted successfully at {DateTime.Now}");
+        }
+        catch (Exception ex)
+        {
+            // Step 5: Handle exceptions and provide error message
+            errorMessage = $"Error while adding data to the database: {ex.Message}";
+
+            // Optional: Log the error for debugging
+            Console.WriteLine($"Exception occurred: {ex.Message}");
+        }
+    }
+
+    private class SearchHistoryItem
+    {
+        public string? City { get; set; }  // Marked as nullable
+        public DateTime DateTime { get; set; }
+    }
+
+    // Define the WeatherData class (added here)
+    public class WeatherData
+    {
+        // Define the properties of the WeatherData class as needed
+        public string Temperature { get; set; } = "Unknown";
+        public string Condition { get; set; } = "Unknown";
+    }
+}

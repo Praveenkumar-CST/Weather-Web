@@ -1,0 +1,116 @@
+@page "/welcome"
+
+@using Microsoft.AspNetCore.Components.Forms
+@using Supabase
+@inject NavigationManager Navigation
+
+<h3>Sign In / Sign Up</h3>
+
+<TabSet>
+    <Tab Title="Sign Up">
+        <EditForm Model="signupModel" OnValidSubmit="HandleSignup">
+            <DataAnnotationsValidator />
+            <div class="mb-3">
+                <label class="form-label">Email:</label>
+                <InputText @bind-Value="signupModel.Email" class="form-control" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Password:</label>
+                <InputText @bind-Value="signupModel.Password" class="form-control" type="password" />
+            </div>
+            <button type="submit" class="btn btn-success w-100">Sign Up</button>
+        </EditForm>
+    </Tab>
+    
+    <Tab Title="Sign In">
+        <EditForm Model="loginModel" OnValidSubmit="HandleLogin">
+            <DataAnnotationsValidator />
+            <div class="mb-3">
+                <label class="form-label">Email:</label>
+                <InputText @bind-Value="loginModel.Email" class="form-control" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Password:</label>
+                <InputText @bind-Value="loginModel.Password" class="form-control" type="password" />
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Sign In</button>
+        </EditForm>
+    </Tab>
+</TabSet>
+
+@if (!string.IsNullOrEmpty(message))
+{
+    <p class="alert alert-info">@message</p>
+}
+
+@code {
+    private Supabase.Client supabase;
+    private SignupModel signupModel = new SignupModel();
+    private LoginModel loginModel = new LoginModel();
+    private string message;
+
+    protected override async Task OnInitializedAsync()
+    {
+        supabase = new Supabase.Client("https://uzvvxayexmusumorxjtx.supabase.co", 
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...");
+    }
+
+    private async Task HandleSignup()
+    {
+        Console.WriteLine("Signup button clicked");
+
+        if (supabase == null)
+        {
+            Console.WriteLine("Supabase client is null!");
+            return;
+        }
+
+        var response = await supabase.Auth.SignUp(signupModel.Email, signupModel.Password);
+        
+        if (response.User != null)
+        {
+            message = $"Account created for {signupModel.Email}. Now log in.";
+        }
+        else if (response.Error != null)
+        {
+            message = $"Error: {response.Error.Message}";
+            Console.WriteLine(response.Error.Message);
+        }
+    }
+
+    private async Task HandleLogin()
+    {
+        Console.WriteLine("Login button clicked");
+
+        if (supabase == null)
+        {
+            Console.WriteLine("Supabase client is null!");
+            return;
+        }
+
+        var response = await supabase.Auth.SignIn(signupModel.Email, signupModel.Password);
+        
+        if (response.User != null)
+        {
+            message = $"Welcome back, {response.User.Email}!";
+            Navigation.NavigateTo("/dashboard"); // Redirect after login
+        }
+        else if (response.Error != null)
+        {
+            message = $"Login failed: {response.Error.Message}";
+            Console.WriteLine(response.Error.Message);
+        }
+    }
+
+    private class SignupModel
+    {
+        public string Email { get; set; }
+        public string Password { get; set; }
+    }
+
+    private class LoginModel
+    {
+        public string Email { get; set; }
+        public string Password { get; set; }
+    }
+}

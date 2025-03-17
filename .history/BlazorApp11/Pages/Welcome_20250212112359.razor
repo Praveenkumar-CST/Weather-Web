@@ -1,0 +1,73 @@
+@page "/welcome"
+@using Microsoft.AspNetCore.Components.Forms
+@inject NavigationManager Navigation
+
+<h3>Login</h3>
+
+<EditForm Model="@loginModel" OnValidSubmit="Login">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div>
+        <label>Username:</label>
+        <InputText @bind-Value="loginModel.Username" />
+    </div>
+    <div>
+        <label>Password:</label>
+        <InputText @bind-Value="loginModel.Password" Type="password" />
+    </div>
+    <button type="submit">Login</button>
+</EditForm>
+
+<p>Don't have an account? <a href="/signup">Sign Up</a></p>
+
+@code {
+    private LoginModel loginModel = new();
+    private async Task Login()
+    {
+        // Perform authentication logic
+        Console.WriteLine($"Logging in {loginModel.Username}");
+        Navigation.NavigateTo("/");
+    }
+    
+    public class LoginModel
+    {
+        public string Username { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+    }
+}
+
+
+@page "/signup"
+<h3>Sign Up</h3>
+
+<EditForm Model="@signupModel" OnValidSubmit="SignUp">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div>
+        <label>Username:</label>
+        <InputText @bind-Value="signupModel.Username" />
+    </div>
+    <div>
+        <label>Password:</label>
+        <InputText @bind-Value="signupModel.Password" Type="password" />
+    </div>
+    <button type="submit">Sign Up</button>
+</EditForm>
+
+<p>Already have an account? <a href="/login">Login</a></p>
+
+@code {
+    private SignupModel signupModel = new();
+    private async Task SignUp()
+    {
+        // Perform registration logic
+        Console.WriteLine($"Signing up {signupModel.Username}");
+        Navigation.NavigateTo("/login");
+    }
+    
+    public class SignupModel
+    {
+        public string Username { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+    }
+}

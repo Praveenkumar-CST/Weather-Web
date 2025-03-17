@@ -1,0 +1,65 @@
+﻿@page "/"
+    @if (isAdded)
+    {
+        <div class="message">
+            <p>City added to favorites!</p>
+        </div>
+    }
+    @if (string.IsNullOrEmpty(city) && !string.IsNullOrEmpty(weather))
+    {
+        <div class="error">
+            <p>Please enter a city to get the weather.</p>
+        </div>
+    }
+</div>
+
+@code {
+    private string city = "";
+    private string weather = "";
+    private List<string> favoriteCities = new();
+    private List<WeatherForecast> forecast = new();
+    private bool isAdded = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        favoriteCities = await LocalStorage.GetItemAsync<List<string>>("favorites") ?? new List<string>();
+    }
+
+    private async Task GetWeather()
+    {
+        if (!string.IsNullOrEmpty(city))
+        {
+            var http = new HttpClient();
+            var apiKey = "027e44160659370f158944e22e8f23aa";
+            var response = await http.GetStringAsync($"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={apiKey}&units=metric");
+            var json = System.Text.Json.JsonDocument.Parse(response);
+            var cityName = json.RootElement.GetProperty("name").GetString();
+            var temp = json.RootElement.GetProperty("main").GetProperty("temp").GetDouble();
+            weather = $"{cityName}: {temp}°C";
+            await GetForecast();
+            await SaveSearchHistory(city);
+        }
+        else
+        {
+            weather = "Please enter a city.";
+        }
+    }
+
+    private async Task GetForecast()
+    {
+        var http = new HttpClient();
+        var apiKey = "027e44160659370f158944e22e8f23aa";
+        var response = await http.GetStringAsync($"https://api.openweathermap.org/data/2.5/forecast?q={city}&appid={apiKey}&units=metric");
+        var json = System.Text.Json.JsonDocument.Parse(response);
+        forecast = json.RootElement.GetProperty("list")
+            .EnumerateArray()
+            .Where((item, index) => index % 8 == 0)
+            .Take(5)
+            .Select(item => new WeatherForecast
+            {
+                Date = item.GetProperty("dt_txt").GetString().Split(' ')[0],
+                Temp = item.GetProperty("main").GetProperty("temp").GetDouble(),
+                Weather = item.GetProperty("weather")[0].GetProperty("description").GetString()
+            }).ToList();
+    }
+}

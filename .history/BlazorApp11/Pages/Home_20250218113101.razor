@@ -1,0 +1,150 @@
+﻿@page "/"
+
+@using Blazored.LocalStorage
+@using MongoDB.Driver
+@inject ILocalStorageService LocalStorage
+@inject NavigationManager Navigation
+@inject IMongoClient MongoClient
+
+<PageTitle>Weather App</PageTitle>
+
+<style>
+body {
+    background: url('/mn.jpg') no-repeat center center fixed;
+    background-size: cover;
+    height: 100vh;
+    margin: 0;
+    overflow: hidden;
+}
+
+.container {
+    padding: 20px;
+    color: white;
+}
+
+.card {
+    background-color: rgba(0, 0, 0, 0.7);
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.card h3 {
+    margin: 10px 0;
+}
+
+.button {
+    padding: 10px 15px;
+    background-color: #FFD700;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.button:hover {
+    background-color: #FFB700;
+}
+
+.fav-button {
+    background-color: red;
+}
+
+.fav-button:hover {
+    background-color: darkred;
+}
+</style>
+
+<div class="container">
+    <h1 class="text-4xl font-bold text-center mb-6">Weather App</h1>
+
+    <!-- Favorite Cities -->
+    <button @onclick="GoToFavorites" class="button mb-6">View Favorite Cities</button>
+
+    <!-- Add New Favorite City -->
+    <div class="card">
+        <h3>Add a City</h3>
+        <input @bind="cityName" placeholder="Enter City Name" class="input" />
+        <button @onclick="AddToFavorites" class="button">Add to Favorites</button>
+    </div>
+
+    <!-- Show cities list from MongoDB -->
+    <h3 class="text-xl">Cities from MongoDB:</h3>
+    <div>
+        @foreach (var city in cities)
+        {
+            <div class="card">
+                <h3>@city.Name</h3>
+                <p>Weather: @city.WeatherDescription</p>
+                <p>Temperature: @city.Temperature</p>
+                <button class="button fav-button" @onclick="() => AddToFavorites(city)">Add to Favorites</button>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private string cityName = "";
+    private List<City> cities = new();
+
+    private async Task LoadCities()
+    {
+        // Connect to MongoDB and retrieve data from "WeatherApp" DB
+        var database = MongoClient.GetDatabase("WeatherApp");
+        var collection = database.GetCollection<City>("Cities");
+
+        // Fetch all cities from MongoDB collection
+        cities = await collection.Find(_ => true).ToListAsync();
+    }
+
+    private async Task AddToFavorites()
+    {
+        if (!string.IsNullOrWhiteSpace(cityName))
+        {
+            var newCity = new City
+            {
+                Name = cityName,
+                WeatherDescription = "Sunny", // Sample data, replace with actual weather data
+                Temperature = 25 // Sample data, replace with actual temperature
+            };
+
+            // Save city to MongoDB
+            var database = MongoClient.GetDatabase("WeatherApp");
+            var collection = database.GetCollection<City>("Cities");
+            await collection.InsertOneAsync(newCity);
+
+            // Clear input and reload cities list
+            cityName = string.Empty;
+            await LoadCities();
+        }
+    }
+
+    private async Task AddToFavorites(City city)
+    {
+        // Add city to favorites, storing in LocalStorage
+        var favoriteCities = await LocalStorage.GetItemAsync<List<City>>("favorites") ?? new List<City>();
+        favoriteCities.Add(city);
+        await LocalStorage.SetItemAsync("favorites", favoriteCities);
+    }
+
+    private void GoToFavorites()
+    {
+        // Navigate to the favorites page
+        Navigation.NavigateTo("/favorites");
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Load cities from MongoDB when page initializes
+        await LoadCities();
+    }
+}
+
+public class City
+{
+    public string Name { get; set; }
+    public string WeatherDescription { get; set; }
+    public double Temperature { get; set; }
+}

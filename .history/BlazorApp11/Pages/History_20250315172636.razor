@@ -1,0 +1,49 @@
+﻿@page "/history"
+
+<h3>Send City Name</h3>
+
+<EditForm Model="cityModel" OnValidSubmit="SendCity">
+    <DataAnnotationsValidator />
+    <div>
+        <label for="city">City Name:</label>
+        <InputText id="city" @bind-Value="cityModel.Name" class="form-control" />
+        <ValidationMessage For="() => cityModel.Name" />
+    </div>
+    <button type="submit" class="btn btn-primary mt-2">Send</button>
+</EditForm>
+
+@if (!string.IsNullOrEmpty(message))
+{
+    <p>@message</p>
+}
+
+@code {
+    private CityModel cityModel = new CityModel();
+    private string message;
+
+    private async Task SendCity()
+    {
+        try
+        {
+            var http = new HttpClient();
+            var response = await http.PostAsJsonAsync("http://127.0.0.1:5188/UserFavorites", cityModel);
+            if (response.IsSuccessStatusCode)
+            {
+                message = "City sent successfully!";
+            }
+            else
+            {
+                message = "Error sending city.";
+            }
+        }
+        catch (Exception ex)
+        {
+            message = $"Request failed: {ex.Message}";
+        }
+    }
+
+    public class CityModel
+    {
+        public string Name { get; set; } = string.Empty;
+    }
+}

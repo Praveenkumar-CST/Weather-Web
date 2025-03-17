@@ -1,0 +1,39 @@
+@page "/login"
+@using Microsoft.AspNetCore.Components
+@inject NavigationManager Navigation
+@code {
+    private string email;
+    private string password;
+    private string errorMessage;
+
+    private void SignIn()
+    {
+        if (email == "praveenkumar165516@gmail.com" && password == "123")
+        {
+            Navigation.NavigateTo("/home", forceLoad: true);
+        }
+        else
+        {
+            errorMessage = "Unsuccessful login. Please check your credentials.";
+        }
+    }
+}
+
+<h3>Sign In</h3>
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <p style="color: red;">@errorMessage</p>
+}
+
+<div>
+    <label>Email:</label>
+    <input @bind="email" type="email" />
+</div>
+
+<div>
+    <label>Password:</label>
+    <input @bind="password" type="password" />
+</div>
+
+<button @onclick="SignIn">Sign In</button>

@@ -1,0 +1,52 @@
+﻿@page "/favorites"
+
+@inject MongoDBService MongoDBService
+@inject NavigationManager Navigation
+
+<PageTitle>Favorites</PageTitle>
+
+<style>
+/* Your existing styles */
+</style>
+
+<div class="flex flex-col items-center p-6 min-h-screen text-white">
+    <h1 class="text-4xl font-bold mb-6 shadow-lg p-2 rounded text-white bg-black bg-opacity-50">❤️ Favorite Cities</h1>
+    <button @onclick="GoBack" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-md shadow-lg mb-6">⬅ Back</button>
+
+    @if (favoriteCities.Any())
+    {
+        <div class="fav-container">
+            @foreach (var city in favoriteCities)
+            {
+                <div class="fav-item">
+                    <p class="fav-date">@city</p>
+                    <button @onclick="() => RemoveFromFavorites(city)" class="remove-btn">Remove</button>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <p class="text-white text-lg">No favorite cities added yet.</p>
+    }
+</div>
+
+@code {
+    private List<string> favoriteCities = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        favoriteCities = await MongoDBService.GetFavoriteCitiesAsync();
+    }
+
+    private void GoBack()
+    {
+        Navigation.NavigateTo("/");
+    }
+
+    private async Task RemoveFromFavorites(string city)
+    {
+        await MongoDBService.RemoveFavoriteCityAsync(city);
+        favoriteCities = await MongoDBService.GetFavoriteCitiesAsync(); // Refresh the list
+    }
+}

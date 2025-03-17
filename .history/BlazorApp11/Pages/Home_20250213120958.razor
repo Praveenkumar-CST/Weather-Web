@@ -1,0 +1,45 @@
+﻿@page "/"
+@inject ILocalStorageService LocalStorage
+@inject NavigationManager Navigation
+
+<PageTitle>Home</PageTitle>
+
+<div class="container">
+    <h1>🌤 Real-Time Weather</h1>
+    
+    <button class="btn btn-primary" @onclick="GetWeather">Get Weather</button>
+    <button class="btn btn-warning ml-2" @onclick="AddToFavorites">⭐ Favorite</button>
+
+    @if (!string.IsNullOrEmpty(weatherData))
+    {
+        <p>@weatherData</p>
+    }
+</div>
+
+<style>
+    .container {
+        text-align: center;
+        padding: 20px;
+    }
+</style>
+
+@code {
+    private string weatherData = string.Empty;
+    private string favoriteCity = "YourCity";
+
+    private async Task GetWeather()
+    {
+        weatherData = "Weather fetched: 30°C, Clear Sky";
+    }
+
+    private async Task AddToFavorites()
+    {
+        var savedCities = await LocalStorage.GetItemAsync<List<string>>("favorites") ?? new List<string>();
+        if (!savedCities.Contains(favoriteCity))
+        {
+            savedCities.Add(favoriteCity);
+            await LocalStorage.SetItemAsync("favorites", savedCities);
+        }
+        Navigation.NavigateTo("/favorites");
+    }
+}

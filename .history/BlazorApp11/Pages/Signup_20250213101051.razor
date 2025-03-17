@@ -1,0 +1,44 @@
+@code {
+    private Supabase.Client? supabase; // ✅ FIX: Nullable field to avoid warning
+    private AuthModel authModel = new();
+    private string message = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        supabase = new Supabase.Client("https://uzvvxayexmusumorxjtx.supabase.co", 
+            "your-supabase-key");
+    }
+
+    private async Task RegisterUser()
+    {
+        if (supabase == null)
+        {
+            message = "Supabase is not initialized.";
+            return;
+        }
+
+        try
+        {
+            var response = await supabase.Auth.SignUp(authModel.Email, authModel.Password);
+
+            if (response?.User != null)
+            {
+                var userData = new UserTable { Email = authModel.Email, FullName = authModel.FullName };
+
+                await supabase.From<UserTable>().Insert(userData);
+
+                message = "Sign-up successful. Please log in.";
+                await Task.Delay(2000);
+                Navigation.NavigateTo("/welcome");
+            }
+            else
+            {
+                message = "Sign-up failed. Please try again.";
+            }
+        }
+        catch (Exception ex)
+        {
+            message = $"Error: {ex.Message}";
+        }
+    }
+}

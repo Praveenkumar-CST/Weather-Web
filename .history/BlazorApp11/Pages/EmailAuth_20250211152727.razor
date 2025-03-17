@@ -1,0 +1,67 @@
+@page "/email-auth"
+@using Supabase
+@using Supabase.Gotrue
+@inject NavigationManager Navigation
+
+<h2>Email Authentication</h2>
+
+@if (!string.IsNullOrEmpty(message))
+{
+    <p>@message</p>
+}
+
+<input @bind="email" placeholder="Enter email" class="form-control" />
+<input type="password" @bind="password" placeholder="Enter password" class="form-control" />
+
+<button class="btn btn-success" @onclick="SignUp">Sign Up</button>
+<button class="btn btn-primary" @onclick="SignIn">Sign In</button>
+
+@code {
+    private string email = "";
+    private string password = "";
+    private string message = "";
+    private Supabase.Client supabase;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var supabaseUrl = "https://uzvvxayexmusumorxjtx.supabase.co";
+        var supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV6dnZ4YXlleG11c3Vtb3J4anR4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkyNjQyMzMsImV4cCI6MjA1NDg0MDIzM30.lPqH-Xv0BYuAr-KprV-HdbDktFBMcqUv5_ZCuEpxQNU";
+        
+        supabase = new Supabase.Client(supabaseUrl, supabaseKey);
+        await supabase.InitializeAsync();
+    }
+
+    private async Task SignUp()
+    {
+        try
+        {
+            var user = await supabase.Auth.SignUp(email, password);
+            message = "Sign-up successful! Check your email for confirmation.";
+        }
+        catch (Exception ex)
+        {
+            message = $"Error: {ex.Message}";
+        }
+    }
+
+    private async Task SignIn()
+    {
+        try
+        {
+            var session = await supabase.Auth.SignIn(email, password);
+            if (session != null)
+            {
+                message = "Login successful!";
+                Navigation.NavigateTo("/dashboard"); // Redirect after login
+            }
+            else
+            {
+                message = "Invalid credentials!";
+            }
+        }
+        catch (Exception ex)
+        {
+            message = $"Error: {ex.Message}";
+        }
+    }
+}

@@ -1,0 +1,54 @@
+﻿@page "/history"
+
+@using Blazored.LocalStorage
+@inject ILocalStorageService LocalStorage
+
+<PageTitle>Search History</PageTitle>
+
+<div class="flex flex-col items-center p-6 min-h-screen text-white">
+    <h1 class="text-4xl font-bold mb-6 shadow-lg p-2 rounded text-white bg-black bg-opacity-50">🔍 Search History</h1>
+
+    @if (history.Any())
+    {
+        <div class="w-full max-w-lg">
+            <ul class="list-none">
+                @foreach (var item in history)
+                {
+                    <li class="mb-4">
+                        <div class="bg-black bg-opacity-50 p-4 rounded-lg shadow-xl text-center">
+                            <p class="text-xl font-semibold text-white">@item.City</p>
+                            <p class="text-gray-400">@item.DateTime.ToString("g")</p>
+                        </div>
+                    </li>
+                }
+            </ul>
+        </div>
+    }
+    else
+    {
+        <p class="text-white">No search history found.</p>
+    }
+
+    <button @onclick="ClearHistory" class="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-md shadow-lg mt-6">Clear History</button>
+</div>
+
+@code {
+    private List<SearchHistoryItem> history = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        history = await LocalStorage.GetItemAsync<List<SearchHistoryItem>>("history") ?? new List<SearchHistoryItem>();
+    }
+
+    private async Task ClearHistory()
+    {
+        await LocalStorage.RemoveItemAsync("history");
+        history.Clear();
+    }
+
+    private class SearchHistoryItem
+    {
+        public string City { get; set; }
+        public DateTime DateTime { get; set; }
+    }
+}

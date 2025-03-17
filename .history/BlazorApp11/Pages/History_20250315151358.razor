@@ -1,0 +1,67 @@
+﻿@page "/history"
+
+<h3>City History</h3>
+
+<input @bind="cityName" placeholder="Enter city" />
+<button @onclick="SaveCity">Save City</button>
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <p style="color:red;">Error: @errorMessage</p>
+}
+
+<ul>
+    @foreach (var city in Cities)
+    {
+        <li>@city</li>
+    }
+</ul>
+
+@code {
+    private string cityName;
+    private List<string> Cities = new();
+    private string errorMessage = "";
+
+    private async Task SaveCity()
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(cityName))
+            {
+                errorMessage = "City name cannot be empty.";
+                return;
+            }
+
+            var httpClient = new HttpClient { BaseAddress = new Uri("http://localhost:5188") };
+            var response = await httpClient.PostAsJsonAsync("/api/history", new { Name = cityName });
+
+            if (response.IsSuccessStatusCode)
+            {
+                Cities.Add(cityName);
+                cityName = string.Empty;
+                errorMessage = ""; // Clear error message on success
+            }
+            else
+            {
+                errorMessage = $"Failed to save city. Server returned: {response.StatusCode}";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Error while saving city: " + ex.Message;
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var httpClient = new HttpClient { BaseAddress = new Uri("http://localhost:5188") };
+            Cities = await httpClient.GetFromJsonAsync<List<string>>("/api/history") ?? new List<string>();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Could not fetch history: " + ex.Message;
+        }
+    }
+}

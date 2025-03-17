@@ -1,0 +1,98 @@
+@page "/welcome"
+
+@inject NavigationManager Navigation
+@inject HttpClient Http
+
+<h3>Login / Signup</h3>
+
+<div class="login-container">
+    @if (!isSignedUp)
+    {
+        <EditForm Model="@loginModel" OnValidSubmit="@HandleSignup">
+            <DataAnnotationsValidator />
+            <div class="form-group">
+                <label>Email</label>
+                <InputText @bind-Value="@loginModel.Email" class="form-control" />
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <InputText @bind-Value="@loginModel.Password" type="password" class="form-control" />
+            </div>
+            <button type="submit" class="btn btn-primary">Signup</button>
+            <button type="button" class="btn btn-secondary" @onclick="()=> isSignedUp = true">Already signed up? Login</button>
+        </EditForm>
+    }
+    else
+    {
+        <EditForm Model="@loginModel" OnValidSubmit="@HandleLogin">
+            <DataAnnotationsValidator />
+            <div class="form-group">
+                <label>Email</label>
+                <InputText @bind-Value="@loginModel.Email" class="form-control" />
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <InputText @bind-Value="@loginModel.Password" type="password" class="form-control" />
+            </div>
+            <button type="submit" class="btn btn-primary">Login</button>
+            <button type="button" class="btn btn-secondary" @onclick="()=> isSignedUp = false">Need an account? Signup</button>
+        </EditForm>
+    }
+    
+    @if (!string.IsNullOrEmpty(message))
+    {
+        <p class="text-danger">@message</p>
+    }
+</div>
+
+@code {
+    private LoginModel loginModel = new();
+    private string message = "";
+    private bool isSignedUp = false;
+    private readonly string supabaseUrl = "https://uzvvxayexmusumorxjtx.supabase.co";
+    private readonly string anonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV6dnZ4YXlleG11c3Vtb3J4anR4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkyNjQyMzMsImV4cCI6MjA1NDg0MDIzM30.lPqH-Xv0BYuAr-KprV-HdbDktFBMcqUv5_ZCuEpxQNU";
+    
+    private async Task HandleLogin()
+    {
+        var response = await Http.PostAsJsonAsync($"{supabaseUrl}/auth/v1/token?grant_type=password", new
+        {
+            email = loginModel.Email,
+            password = loginModel.Password
+        }, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+        
+        if (response.IsSuccessStatusCode)
+        {
+            message = "Login successful!";
+            Navigation.NavigateTo("/dashboard");
+        }
+        else
+        {
+            message = "Invalid credentials. Try again.";
+        }
+    }
+    
+    private async Task HandleSignup()
+    {
+        var response = await Http.PostAsJsonAsync($"{supabaseUrl}/auth/v1/signup", new
+        {
+            email = loginModel.Email,
+            password = loginModel.Password
+        }, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+        
+        if (response.IsSuccessStatusCode)
+        {
+            message = "Signup successful! Check your email to verify.";
+            isSignedUp = true;
+        }
+        else
+        {
+            message = "Signup failed. Try again.";
+        }
+    }
+    
+    private class LoginModel
+    {
+        public string Email { get; set; } = "";
+        public string Password { get; set; } = "";
+    }
+}

@@ -1,0 +1,107 @@
+﻿@page "/favourites"
+@inject IMongoClient MongoClient
+
+@using MongoDB.Driver
+@using MongoDB.Bson
+
+@code {
+    private IMongoCollection<BsonDocument>? _collection;
+    private List<string> FavouriteCities = new();
+    private string NewCity = "";
+    private string ErrorMessage = "";
+
+    protected override void OnInitialized()
+    {
+        try
+        {
+            // Use the connection string for your local MongoDB server
+            var mongoClient = new MongoClient("mongodb://localhost:27017"); // Localhost connection
+            var database = mongoClient.GetDatabase("WeatherApp");
+            _collection = database.GetCollection<BsonDocument>("PraveenCities");
+            LoadFavourites();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Error initializing MongoDB connection: {ex.Message}";
+            Console.Error.WriteLine($"Error initializing MongoDB connection: {ex.Message}");
+        }
+    }
+
+    private void LoadFavourites()
+    {
+        try
+        {
+            FavouriteCities = _collection.Find(new BsonDocument())
+                                          .ToList()
+                                          .Select(doc => doc["City"].AsString)
+                                          .ToList();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Error loading favourite cities: {ex.Message}";
+            Console.Error.WriteLine($"Error loading favourite cities: {ex.Message}");
+        }
+    }
+
+    private async Task AddToFavourites()
+    {
+        try
+        {
+            if (!string.IsNullOrWhiteSpace(NewCity) && !FavouriteCities.Contains(NewCity))
+            {
+                var newFav = new BsonDocument { { "City", NewCity } };
+                await _collection.InsertOneAsync(newFav);
+                FavouriteCities.Add(NewCity);
+                NewCity = "";
+                ErrorMessage = "";  // Clear any previous errors
+            }
+            else
+            {
+                ErrorMessage = "City name cannot be empty or already in the list.";
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Error adding city: {ex.Message}";
+            Console.Error.WriteLine($"Error adding city: {ex.Message}");
+        }
+    }
+
+    private async Task RemoveFromFavourites(string city)
+    {
+        try
+        {
+            var filter = Builders<BsonDocument>.Filter.Eq("City", city);
+            await _collection.DeleteOneAsync(filter);
+            FavouriteCities.Remove(city);
+            ErrorMessage = "";  // Clear any previous errors
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Error removing city: {ex.Message}";
+            Console.Error.WriteLine($"Error removing city: {ex.Message}");
+        }
+    }
+}
+
+<h3>Favourite Cities</h3>
+
+@if (!string.IsNullOrWhiteSpace(ErrorMessage))
+{
+    <div style="color:red;">
+        <strong>Error:</strong> @ErrorMessage
+    </div>
+}
+
+<ul>
+    @foreach (var city in FavouriteCities)
+    {
+        <li>
+            @city 
+            <button @onclick="() => RemoveFromFavourites(city)">Remove</button>
+        </li>
+    }
+</ul>
+
+<input @bind="NewCity" placeholder="Enter city name" />
+<button @onclick="AddToFavourites">Add to Favourites</button>

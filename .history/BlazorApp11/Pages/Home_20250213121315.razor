@@ -1,0 +1,23 @@
+﻿@page "/"
+@inject NavigationManager Navigation
+@inject ILocalStorageService LocalStorage
+
+<PageTitle>Home</PageTitle>
+
+<div class="container">
+    <h1>Welcome to Weather App</h1>
+    <button class="btn btn-primary" @onclick="GoToFavorites">View Favorites</button>
+    <button class="btn btn-secondary" @onclick="GoToSignIn">Sign In</button>
+</div>
+
+<style>
+.container {
+    text-align: center;
+    padding: 20px;
+}
+</style>
+
+@code {
+    private void GoToFavorites() => Navigation.NavigateTo("/favorites");
+    private void GoToSignIn() => Navigation.NavigateTo("/signin");
+}

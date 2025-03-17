@@ -1,0 +1,128 @@
+﻿@page "/favourites"
+@inject IMongoClient MongoClient
+
+@using MongoDB.Driver
+@using MongoDB.Bson
+
+@code {
+    private IMongoCollection<BsonDocument>? _collection;
+    private List<string> FavouriteCities = new();
+    private string NewCity = "";
+    private string ErrorMessage = "";
+
+    protected override void OnInitialized()
+    {
+        try
+        {
+            // Log the start of MongoDB initialization
+            Console.WriteLine("Initializing MongoDB connection...");
+
+            // Use the connection string for your local MongoDB server
+            var mongoClient = new MongoClient("mongodb://localhost:27017"); // Localhost connection
+            var database = mongoClient.GetDatabase("WeatherApp");
+
+            _collection = database.GetCollection<BsonDocument>("PraveenCities");
+            LoadFavourites();
+            Console.WriteLine("MongoDB connection successful!");
+        }
+        catch (Exception ex)
+        {
+            // Log error details
+            ErrorMessage = $"Error initializing MongoDB connection: {ex.Message}";
+            Console.Error.WriteLine($"Error initializing MongoDB connection: {ex.Message}");
+        }
+    }
+
+    private void LoadFavourites()
+    {
+        try
+        {
+            // Log the data loading process
+            Console.WriteLine("Loading favourite cities from MongoDB...");
+
+            FavouriteCities = _collection.Find(new BsonDocument())
+                                          .ToList()
+                                          .Select(doc => doc["City"].AsString)
+                                          .ToList();
+            Console.WriteLine($"Loaded {FavouriteCities.Count} favourite cities.");
+        }
+        catch (Exception ex)
+        {
+            // Log the error
+            ErrorMessage = $"Error loading favourite cities: {ex.Message}";
+            Console.Error.WriteLine($"Error loading favourite cities: {ex.Message}");
+        }
+    }
+
+    private async Task AddToFavourites()
+    {
+        try
+        {
+            // Log the adding of a new favourite city
+            Console.WriteLine($"Adding city '{NewCity}' to favourites.");
+
+            if (!string.IsNullOrWhiteSpace(NewCity) && !FavouriteCities.Contains(NewCity))
+            {
+                var newFav = new BsonDocument { { "City", NewCity } };
+                await _collection.InsertOneAsync(newFav);
+                FavouriteCities.Add(NewCity);
+                NewCity = "";
+                ErrorMessage = "";  // Clear any previous errors
+                Console.WriteLine($"City '{NewCity}' added to favourites.");
+            }
+            else
+            {
+                ErrorMessage = "City name cannot be empty or already in the list.";
+            }
+        }
+        catch (Exception ex)
+        {
+            // Log the error
+            ErrorMessage = $"Error adding city: {ex.Message}";
+            Console.Error.WriteLine($"Error adding city: {ex.Message}");
+        }
+    }
+
+    private async Task RemoveFromFavourites(string city)
+    {
+        try
+        {
+            // Log the removal of a city
+            Console.WriteLine($"Removing city '{city}' from favourites.");
+
+            var filter = Builders<BsonDocument>.Filter.Eq("City", city);
+            await _collection.DeleteOneAsync(filter);
+            FavouriteCities.Remove(city);
+            ErrorMessage = "";  // Clear any previous errors
+            Console.WriteLine($"City '{city}' removed from favourites.");
+        }
+        catch (Exception ex)
+        {
+            // Log the error
+            ErrorMessage = $"Error removing city: {ex.Message}";
+            Console.Error.WriteLine($"Error removing city: {ex.Message}");
+        }
+    }
+}
+
+<h3>Favourite Cities</h3>
+
+@if (!string.IsNullOrWhiteSpace(ErrorMessage))
+{
+    <div style="color:red;">
+        <strong>Error:</strong> @ErrorMessage
+    </div>
+}
+
+<ul>
+    @foreach (var city in FavouriteCities)
+    {
+        <li>
+            @city 
+            <button @onclick="() => RemoveFromFavourites(city)">Remove</button>
+        </li>
+    }
+</ul>
+
+<input @bind="NewCity" placeholder="Enter city name" />
+<button @onclick="AddToFavourites">Add to Favourites</button>

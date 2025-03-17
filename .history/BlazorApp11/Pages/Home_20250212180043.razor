@@ -1,0 +1,99 @@
+﻿@page "/"
+
+<PageTitle>Weather Prediction</PageTitle>
+
+<h1>Weather Prediction</h1>
+
+<input @bind="city" placeholder="Enter city" />
+<button @onclick="GetWeather">Get Weather</button>
+
+@if (!string.IsNullOrEmpty(weather))
+{
+    <p>@weather</p>
+}
+
+@code {
+    private string city = "";
+@page "/"
+
+<PageTitle>Weather Prediction</PageTitle>
+
+<h1>Weather Prediction</h1>
+
+<input @bind="city" placeholder="Enter city" />
+<button @onclick="GetWeather">Get Weather</button>
+
+@if (!string.IsNullOrEmpty(weather))
+{
+    <p>@weather</p>
+}
+
+@if (forecast != null && forecast.Count > 0)
+{
+    <h3>5-Day Forecast</h3>
+    <ul>
+        @foreach (var day in forecast)
+        {
+            <li>@day.Date: @day.Temp°C - @day.Description</li>
+        }
+    </ul>
+}
+
+@code {
+    private string city = "";
+    private string weather = "";
+    private List<Forecast> forecast = new List<Forecast>();
+
+    private async Task GetWeather()
+    {
+        if (!string.IsNullOrEmpty(city))
+        {
+            var http = new HttpClient();
+            var apiKey = "027e44160659370f158944e22e8f23aa";
+            var response = await http.GetStringAsync($"https://api.openweathermap.org/data/2.5/forecast?q={city}&appid={apiKey}&units=metric");
+
+            var json = System.Text.Json.JsonDocument.Parse(response);
+            var cityName = json.RootElement.GetProperty("city").GetProperty("name").GetString();
+            weather = $"Current weather in {cityName}:";
+
+            forecast.Clear();
+            foreach (var item in json.RootElement.GetProperty("list").EnumerateArray())
+            {
+                var date = item.GetProperty("dt_txt").GetString();
+                var temp = item.GetProperty("main").GetProperty("temp").GetDouble();
+                var description = item.GetProperty("weather")[0].GetProperty("description").GetString();
+
+                // Adding only 5 days forecast (approximately 8 data points for each day)
+                if (forecast.Count < 5)
+                {
+                    forecast.Add(new Forecast { Date = date, Temp = temp, Description = description });
+                }
+            }
+        }
+    }
+
+    public class Forecast
+    {
+        public string Date { get; set; }
+        public double Temp { get; set; }
+        public string Description { get; set; }
+    }
+}
+    private string weather = "";
+
+    private async Task GetWeather()
+    {
+        if (!string.IsNullOrEmpty(city))
+        {
+            var http = new HttpClient();
+            var apiKey = "027e44160659370f158944e22e8f23aa";
+            var response = await http.GetStringAsync($"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={apiKey}&units=metric");
+
+            var json = System.Text.Json.JsonDocument.Parse(response);
+            var cityName = json.RootElement.GetProperty("name").GetString();
+            var temp = json.RootElement.GetProperty("main").GetProperty("temp").GetDouble();
+
+            weather = $"{cityName}: {temp}°C";
+        }
+    }
+}

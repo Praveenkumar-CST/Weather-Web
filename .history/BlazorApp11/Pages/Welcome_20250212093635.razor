@@ -1,0 +1,108 @@
+@page "/welcome"
+
+@using Microsoft.AspNetCore.Components.Forms
+@inject NavigationManager Navigation
+@using Supabase.Client
+
+<h3 class="text-center mb-4">Sign In / Sign Up</h3>
+
+<div class="card mx-auto p-4 shadow" style="max-width: 400px;">
+    <ul class="nav nav-tabs" id="authTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="login-tab" data-bs-toggle="tab" data-bs-target="#login" type="button" role="tab">Login</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="signup-tab" data-bs-toggle="tab" data-bs-target="#signup" type="button" role="tab">Sign Up</button>
+        </li>
+    </ul>
+    <div class="tab-content p-3" id="authContent">
+        <!-- Login Form -->
+        <div class="tab-pane fade show active" id="login" role="tabpanel">
+            <EditForm Model="loginModel" OnValidSubmit="HandleLogin">
+                <DataAnnotationsValidator />
+                <div class="mb-3">
+                    <label class="form-label">Email:</label>
+                    <InputText @bind-Value="loginModel.Email" class="form-control" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Password:</label>
+                    <InputText @bind-Value="loginModel.Password" class="form-control" type="password" />
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Login</button>
+            </EditForm>
+        </div>
+        
+        <!-- Signup Form -->
+        <div class="tab-pane fade" id="signup" role="tabpanel">
+            <EditForm Model="signupModel" OnValidSubmit="HandleSignup">
+                <DataAnnotationsValidator />
+                <div class="mb-3">
+                    <label class="form-label">Email:</label>
+                    <InputText @bind-Value="signupModel.Email" class="form-control" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Password:</label>
+                    <InputText @bind-Value="signupModel.Password" class="form-control" type="password" />
+                </div>
+                <button type="submit" class="btn btn-success w-100">Sign Up</button>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+@if (!string.IsNullOrEmpty(message))
+{
+    <p class="text-center mt-3 text-success">@message</p>
+}
+
+@code {
+    private LoginModel loginModel = new LoginModel();
+    private SignupModel signupModel = new SignupModel();
+    private string message;
+    private Supabase.Client supabase;
+
+    protected override async Task OnInitializedAsync()
+    {
+        supabase = new Supabase.Client("https://uzvvxayexmusumorxjtx.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV6dnZ4YXlleG11c3Vtb3J4anR4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkyNjQyMzMsImV4cCI6MjA1NDg0MDIzM30.lPqH-Xv0BYuAr-KprV-HdbDktFBMcqUv5_ZCuEpxQNU");
+    }
+
+    private async Task HandleLogin()
+    {
+        var response = await supabase.Auth.SignIn(loginModel.Email, loginModel.Password);
+        if (response.User != null)
+        {
+            message = $"Welcome back, {loginModel.Email}";
+            Navigation.NavigateTo("/dashboard");
+        }
+        else
+        {
+            message = "Invalid credentials";
+        }
+    }
+
+    private async Task HandleSignup()
+    {
+        var response = await supabase.Auth.SignUp(signupModel.Email, signupModel.Password);
+        if (response.User != null)
+        {
+            message = $"Account created for {signupModel.Email}";
+            Navigation.NavigateTo("/dashboard");
+        }
+        else
+        {
+            message = "Signup failed. Try again.";
+        }
+    }
+
+    private class LoginModel
+    {
+        public string Email { get; set; }
+        public string Password { get; set; }
+    }
+
+    private class SignupModel
+    {
+        public string Email { get; set; }
+        public string Password { get; set; }
+    }
+}
