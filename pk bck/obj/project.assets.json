@@ -1027,11 +1027,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/Users/praveenkumar.s/Desktop/final climate/pk bck/WeatherBackend.csproj",
+      "projectUniqueName": "/Users/praveenkumar.s/Desktop/Weatherweb/pk bck/WeatherBackend.csproj",
       "projectName": "WeatherBackend",
-      "projectPath": "/Users/praveenkumar.s/Desktop/final climate/pk bck/WeatherBackend.csproj",
+      "projectPath": "/Users/praveenkumar.s/Desktop/Weatherweb/pk bck/WeatherBackend.csproj",
       "packagesPath": "/Users/praveenkumar.s/.nuget/packages/",
-      "outputPath": "/Users/praveenkumar.s/Desktop/final climate/pk bck/obj/",
+      "outputPath": "/Users/praveenkumar.s/Desktop/Weatherweb/pk bck/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/Users/praveenkumar.s/.nuget/NuGet/NuGet.Config"
@@ -1095,5 +1095,13 @@
         "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/9.0.200/PortableRuntimeIdentifierGraph.json"
       }
     }
-  }
+  },
+  "logs": [
+    {
+      "code": "NU1900",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json."
+    }
+  ]
 }

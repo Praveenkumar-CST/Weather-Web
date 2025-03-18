@@ -246,3 +246,45 @@ C:/Users/ranji/OneDrive/Desktop/WeatherBackend/WeatherBackend/bin/Debug/net9.0/S
 /Users/praveenkumar.s/Important/final climate/pk bck/obj/Debug/net9.0/WeatherBackend.genruntimeconfig.cache
 /Users/praveenkumar.s/Important/final climate/pk bck/obj/Debug/net9.0/ref/WeatherBackend.dll
 /Users/praveenkumar.s/Desktop/final climate/pk bck/obj/Debug/net9.0/WeatherBackend.sourcelink.json
+/Users/praveenkumar.s/Desktop/Weatherweb/pk bck/bin/Debug/net9.0/appsettings.Development.json
+/Users/praveenkumar.s/Desktop/Weatherweb/pk bck/bin/Debug/net9.0/appsettings.json
+/Users/praveenkumar.s/Desktop/Weatherweb/pk bck/bin/Debug/net9.0/WeatherBackend.staticwebassets.endpoints.json
+/Users/praveenkumar.s/Desktop/Weatherweb/pk bck/bin/Debug/net9.0/WeatherBackend
+/Users/praveenkumar.s/Desktop/Weatherweb/pk bck/bin/Debug/net9.0/WeatherBackend.deps.json
+/Users/praveenkumar.s/Desktop/Weatherweb/pk bck/bin/Debug/net9.0/WeatherBackend.runtimeconfig.json
+/Users/praveenkumar.s/Desktop/Weatherweb/pk bck/bin/Debug/net9.0/WeatherBackend.dll
+/Users/praveenkumar.s/Desktop/Weatherweb/pk bck/bin/Debug/net9.0/WeatherBackend.pdb
+/Users/praveenkumar.s/Desktop/Weatherweb/pk bck/bin/Debug/net9.0/DnsClient.dll
+/Users/praveenkumar.s/Desktop/Weatherweb/pk bck/bin/Debug/net9.0/Microsoft.OpenApi.dll
+/Users/praveenkumar.s/Desktop/Weatherweb/pk bck/bin/Debug/net9.0/MongoDB.Bson.dll
+/Users/praveenkumar.s/Desktop/Weatherweb/pk bck/bin/Debug/net9.0/MongoDB.Driver.dll
+/Users/praveenkumar.s/Desktop/Weatherweb/pk bck/bin/Debug/net9.0/SharpCompress.dll
+/Users/praveenkumar.s/Desktop/Weatherweb/pk bck/bin/Debug/net9.0/Snappier.dll
+/Users/praveenkumar.s/Desktop/Weatherweb/pk bck/bin/Debug/net9.0/Swashbuckle.AspNetCore.Swagger.dll
+/Users/praveenkumar.s/Desktop/Weatherweb/pk bck/bin/Debug/net9.0/Swashbuckle.AspNetCore.SwaggerGen.dll
+/Users/praveenkumar.s/Desktop/Weatherweb/pk bck/bin/Debug/net9.0/Swashbuckle.AspNetCore.SwaggerUI.dll
+/Users/praveenkumar.s/Desktop/Weatherweb/pk bck/bin/Debug/net9.0/ZstdSharp.dll
+/Users/praveenkumar.s/Desktop/Weatherweb/pk bck/obj/Debug/net9.0/WeatherBackend.csproj.AssemblyReference.cache
+/Users/praveenkumar.s/Desktop/Weatherweb/pk bck/obj/Debug/net9.0/WeatherBackend.GeneratedMSBuildEditorConfig.editorconfig
+/Users/praveenkumar.s/Desktop/Weatherweb/pk bck/obj/Debug/net9.0/WeatherBackend.AssemblyInfoInputs.cache
+/Users/praveenkumar.s/Desktop/Weatherweb/pk bck/obj/Debug/net9.0/WeatherBackend.AssemblyInfo.cs
+/Users/praveenkumar.s/Desktop/Weatherweb/pk bck/obj/Debug/net9.0/WeatherBackend.csproj.CoreCompileInputs.cache
+/Users/praveenkumar.s/Desktop/Weatherweb/pk bck/obj/Debug/net9.0/WeatherBackend.MvcApplicationPartsAssemblyInfo.cs
+/Users/praveenkumar.s/Desktop/Weatherweb/pk bck/obj/Debug/net9.0/WeatherBackend.MvcApplicationPartsAssemblyInfo.cache
+/Users/praveenkumar.s/Desktop/Weatherweb/pk bck/obj/Debug/net9.0/WeatherBackend.sourcelink.json
+/Users/praveenkumar.s/Desktop/Weatherweb/pk bck/obj/Debug/net9.0/scopedcss/bundle/WeatherBackend.styles.css
+/Users/praveenkumar.s/Desktop/Weatherweb/pk bck/obj/Debug/net9.0/staticwebassets.build.json
+/Users/praveenkumar.s/Desktop/Weatherweb/pk bck/obj/Debug/net9.0/staticwebassets.development.json
+/Users/praveenkumar.s/Desktop/Weatherweb/pk bck/obj/Debug/net9.0/staticwebassets.build.endpoints.json
+/Users/praveenkumar.s/Desktop/Weatherweb/pk bck/obj/Debug/net9.0/staticwebassets/msbuild.WeatherBackend.Microsoft.AspNetCore.StaticWebAssets.props
+/Users/praveenkumar.s/Desktop/Weatherweb/pk bck/obj/Debug/net9.0/staticwebassets/msbuild.WeatherBackend.Microsoft.AspNetCore.StaticWebAssetEndpoints.props
+/Users/praveenkumar.s/Desktop/Weatherweb/pk bck/obj/Debug/net9.0/staticwebassets/msbuild.build.WeatherBackend.props
+/Users/praveenkumar.s/Desktop/Weatherweb/pk bck/obj/Debug/net9.0/staticwebassets/msbuild.buildMultiTargeting.WeatherBackend.props
+/Users/praveenkumar.s/Desktop/Weatherweb/pk bck/obj/Debug/net9.0/staticwebassets/msbuild.buildTransitive.WeatherBackend.props
+/Users/praveenkumar.s/Desktop/Weatherweb/pk bck/obj/Debug/net9.0/staticwebassets.pack.json
+/Users/praveenkumar.s/Desktop/Weatherweb/pk bck/obj/Debug/net9.0/WeatherB.591A9975.Up2Date
+/Users/praveenkumar.s/Desktop/Weatherweb/pk bck/obj/Debug/net9.0/WeatherBackend.dll
+/Users/praveenkumar.s/Desktop/Weatherweb/pk bck/obj/Debug/net9.0/refint/WeatherBackend.dll
+/Users/praveenkumar.s/Desktop/Weatherweb/pk bck/obj/Debug/net9.0/WeatherBackend.pdb
+/Users/praveenkumar.s/Desktop/Weatherweb/pk bck/obj/Debug/net9.0/WeatherBackend.genruntimeconfig.cache
+/Users/praveenkumar.s/Desktop/Weatherweb/pk bck/obj/Debug/net9.0/ref/WeatherBackend.dll

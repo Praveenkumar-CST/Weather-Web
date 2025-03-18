@@ -13,53 +13,53 @@ build_property.EnforceExtendedAnalyzerRules =
 build_property._SupportedPlatformList = browser
 build_property.RootNamespace = BlazorApp11
 build_property.RootNamespace = BlazorApp11
-build_property.ProjectDir = /Users/praveenkumar.s/Desktop/final climate/BlazorApp11/
+build_property.ProjectDir = /Users/praveenkumar.s/Desktop/Weatherweb/BlazorApp11/
 build_property.EnableComHosting = 
 build_property.EnableGeneratedComInterfaceComImportInterop = false
 build_property.RazorLangVersion = 9.0
 build_property.SupportLocalizedComponentNames = 
 build_property.GenerateRazorMetadataSourceChecksumAttributes = 
-build_property.MSBuildProjectDirectory = /Users/praveenkumar.s/Desktop/final climate/BlazorApp11
+build_property.MSBuildProjectDirectory = /Users/praveenkumar.s/Desktop/Weatherweb/BlazorApp11
 build_property._RazorSourceGeneratorDebug = 
 build_property.EffectiveAnalysisLevelStyle = 9.0
 build_property.EnableCodeStyleSeverity = 
 
-[/Users/praveenkumar.s/Desktop/final climate/BlazorApp11/App.razor]
+[/Users/praveenkumar.s/Desktop/Weatherweb/BlazorApp11/App.razor]
 build_metadata.AdditionalFiles.TargetPath = QXBwLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[/Users/praveenkumar.s/Desktop/final climate/BlazorApp11/Layout/MainLayout.razor]
+[/Users/praveenkumar.s/Desktop/Weatherweb/BlazorApp11/Layout/MainLayout.razor]
 build_metadata.AdditionalFiles.TargetPath = TGF5b3V0L01haW5MYXlvdXQucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[/Users/praveenkumar.s/Desktop/final climate/BlazorApp11/Layout/NavMenu.razor]
+[/Users/praveenkumar.s/Desktop/Weatherweb/BlazorApp11/Layout/NavMenu.razor]
 build_metadata.AdditionalFiles.TargetPath = TGF5b3V0L05hdk1lbnUucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[/Users/praveenkumar.s/Desktop/final climate/BlazorApp11/Pages/Dashboard.razor]
+[/Users/praveenkumar.s/Desktop/Weatherweb/BlazorApp11/Pages/Dashboard.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXMvRGFzaGJvYXJkLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[/Users/praveenkumar.s/Desktop/final climate/BlazorApp11/Pages/Favourites.razor]
+[/Users/praveenkumar.s/Desktop/Weatherweb/BlazorApp11/Pages/Favourites.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXMvRmF2b3VyaXRlcy5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[/Users/praveenkumar.s/Desktop/final climate/BlazorApp11/Pages/History.razor]
+[/Users/praveenkumar.s/Desktop/Weatherweb/BlazorApp11/Pages/History.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXMvSGlzdG9yeS5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[/Users/praveenkumar.s/Desktop/final climate/BlazorApp11/Pages/Home.razor]
+[/Users/praveenkumar.s/Desktop/Weatherweb/BlazorApp11/Pages/Home.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXMvSG9tZS5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[/Users/praveenkumar.s/Desktop/final climate/BlazorApp11/Pages/Sign up.razor]
+[/Users/praveenkumar.s/Desktop/Weatherweb/BlazorApp11/Pages/Sign up.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXMvU2lnbiB1cC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[/Users/praveenkumar.s/Desktop/final climate/BlazorApp11/Pages/Signin.razor]
+[/Users/praveenkumar.s/Desktop/Weatherweb/BlazorApp11/Pages/Signin.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXMvU2lnbmluLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[/Users/praveenkumar.s/Desktop/final climate/BlazorApp11/_Imports.razor]
+[/Users/praveenkumar.s/Desktop/Weatherweb/BlazorApp11/_Imports.razor]
 build_metadata.AdditionalFiles.TargetPath = X0ltcG9ydHMucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 

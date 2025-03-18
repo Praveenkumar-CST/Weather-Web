@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "WCvo50IoF9I=",
+  "dgSpecHash": "wdqzGW0DpXU=",
   "success": true,
-  "projectFilePath": "/Users/praveenkumar.s/Desktop/final climate/BlazorApp11/BlazorApp11.csproj",
+  "projectFilePath": "/Users/praveenkumar.s/Desktop/Weatherweb/BlazorApp11/BlazorApp11.csproj",
   "expectedPackageFiles": [
     "/Users/praveenkumar.s/.nuget/packages/blazored.localstorage/4.5.0/blazored.localstorage.4.5.0.nupkg.sha512",
     "/Users/praveenkumar.s/.nuget/packages/dnsclient/1.6.1/dnsclient.1.6.1.nupkg.sha512",
@@ -64,5 +64,12 @@
     "/Users/praveenkumar.s/.nuget/packages/zstdsharp.port/0.7.3/zstdsharp.port.0.7.3.nupkg.sha512",
     "/Users/praveenkumar.s/.nuget/packages/microsoft.netcore.app.runtime.mono.browser-wasm/9.0.2/microsoft.netcore.app.runtime.mono.browser-wasm.9.0.2.nupkg.sha512"
   ],
-  "logs": []
+  "logs": [
+    {
+      "code": "NU1900",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json."
+    }
+  ]
 }

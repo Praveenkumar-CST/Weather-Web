@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "/Users/praveenkumar.s/Desktop/final climate/BlazorApp11/BlazorApp11.csproj": {}
+    "/Users/praveenkumar.s/Desktop/Weatherweb/BlazorApp11/BlazorApp11.csproj": {}
   },
   "projects": {
-    "/Users/praveenkumar.s/Desktop/final climate/BlazorApp11/BlazorApp11.csproj": {
+    "/Users/praveenkumar.s/Desktop/Weatherweb/BlazorApp11/BlazorApp11.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/praveenkumar.s/Desktop/final climate/BlazorApp11/BlazorApp11.csproj",
+        "projectUniqueName": "/Users/praveenkumar.s/Desktop/Weatherweb/BlazorApp11/BlazorApp11.csproj",
         "projectName": "BlazorApp11",
-        "projectPath": "/Users/praveenkumar.s/Desktop/final climate/BlazorApp11/BlazorApp11.csproj",
+        "projectPath": "/Users/praveenkumar.s/Desktop/Weatherweb/BlazorApp11/BlazorApp11.csproj",
         "packagesPath": "/Users/praveenkumar.s/.nuget/packages/",
-        "outputPath": "/Users/praveenkumar.s/Desktop/final climate/BlazorApp11/obj/",
+        "outputPath": "/Users/praveenkumar.s/Desktop/Weatherweb/BlazorApp11/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/Users/praveenkumar.s/.nuget/NuGet/NuGet.Config"
