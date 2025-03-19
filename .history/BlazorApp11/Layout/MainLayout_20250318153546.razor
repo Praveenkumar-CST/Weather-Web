@@ -1,0 +1,139 @@
+﻿@inherits LayoutComponentBase
+@using Blazored.LocalStorage
+@inject ILocalStorageService LocalStorage
+@inject NavigationManager Navigation
+
+<div class="page">
+    <div class="sidebar">
+        <NavMenu />
+    </div>
+    <main>
+        <div class="top-bar">
+            @if (!string.IsNullOrEmpty(userEmail))
+            {
+                <div class="user-info">
+                    <span class="user-email">Logged in as: @userEmail</span>
+                    <button class="btn btn-logout" @onclick="Logout">Logout</button>
+                </div>
+            }
+            else
+            {
+                <NavLink href="/signin" class="btn btn-signin">Sign in/Sign up</NavLink>
+            }
+        </div>
+        <div class="content">
+            @Body
+        </div>
+    </main>
+</div>
+
+<style>
+    .page {
+        display: flex;
+        min-height: 100vh;
+        background: transparent; /* Ensure mn.jpg from Home Page is visible */
+    }
+
+    .sidebar {
+        flex: 0 0 auto;
+        position: relative;
+        z-index: 1000;
+    }
+
+    main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .top-bar {
+        background: rgba(38, 50, 56, 0.9); /* Semi-transparent, matches Home Page cards */
+        padding: 15px 30px;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        position: sticky;
+        top: 0;
+        z-index: 900;
+    }
+
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .user-email {
+        color: #26c6da; /* Teal accent, consistent with Home Page */
+        font-size: 1.1rem;
+        font-weight: 500;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5); /* Improve readability */
+    }
+
+    .btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 20px;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-signin {
+        background: #26c6da; /* Teal, consistent with Home Page */
+        color: #fff;
+    }
+
+    .btn-signin:hover {
+        background: #00acc1;
+        transform: scale(1.05);
+    }
+
+    .btn-logout {
+        background: #ff7043; /* Coral accent, consistent with NavMenu */
+        color: #fff;
+    }
+
+    .btn-logout:hover {
+        background: #f4511e;
+        transform: scale(1.05);
+    }
+
+    .content {
+        flex: 1;
+        padding: 0; /* Let child components (like Home) handle padding */
+    }
+</style>
+
+@code {
+    private string userEmail = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        userEmail = await LocalStorage.GetItemAsync<string>("userEmail") ?? "";
+        Console.WriteLine($"MainLayout initialized with email: {userEmail}");
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            var currentEmail = await LocalStorage.GetItemAsync<string>("userEmail") ?? "";
+            if (currentEmail != userEmail)
+            {
+                userEmail = currentEmail;
+                Console.WriteLine($"MainLayout updated email after render: {userEmail}");
+                StateHasChanged();
+            }
+        }
+    }
+
+    private async Task Logout()
+    {
+        await LocalStorage.RemoveItemAsync("userEmail");
+        userEmail = "";
+        Navigation.NavigateTo("/signin", forceLoad: true);
+        StateHasChanged();
+    }
+}

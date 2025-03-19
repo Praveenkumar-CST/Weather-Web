@@ -1,0 +1,200 @@
+@page "/signin"
+@using Microsoft.AspNetCore.Components.Forms
+@using Supabase
+@using Supabase.Gotrue
+@using Blazored.LocalStorage
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+@inject ILocalStorageService LocalStorage
+
+<h3 class="title">@(isLogin ? "Login" : "Sign Up")</h3>
+
+<div class="auth-container">
+    <EditForm Model="@authModel" OnValidSubmit="Authenticate">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+        <div class="form-group">
+            <label class="label">Email:</label>
+            <InputText @bind-Value="authModel.Email" class="input-field" />
+        </div>
+        <div class="form-group">
+            <label class="label">Password:</label>
+            <InputText @bind-Value="authModel.Password" Type="password" class="input-field" />
+        </div>
+        <button type="submit" class="submit-btn" disabled="@isLoading">
+            @(isLoading ? "Processing..." : (isLogin ? "Login" : "Sign Up"))
+        </button>
+    </EditForm>
+
+    <p class="toggle-text">
+        @(isLogin ? "Don't have an account?" : "Already have an account?") 
+        <a href="#" @onclick="ToggleMode" @onclick:preventDefault class="toggle-link">
+            @(isLogin ? "Sign Up" : "Login")
+        </a>
+    </p>
+
+    @if (!string.IsNullOrEmpty(message))
+    {
+        <p class="message">@message</p>
+    }
+</div>
+
+<style>
+    /* Same styles as before, unchanged */
+    .auth-container {
+        width: 350px;
+        margin: auto;
+        background-color:@(isLogin?"green":"red");
+        padding: 40px;
+        border-radius: 15px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        text-align: center;
+    }
+
+    .title {
+        font-size: 2em;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 30px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+        text-align: left;
+    }
+
+    .label {
+        font-weight: 500;
+        color: #555;
+        margin-bottom: 8px;
+    }
+
+    .input-field {
+        width: 100%;
+        padding: 12px;
+        font-size: 1rem;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+        background-color: #f9f9f9;
+    }
+
+    .input-field:focus {
+        border-color: #4caf50;
+        outline: none;
+        background-color: #fff;
+    }
+
+    .submit-btn {
+        width: 100%;
+        padding: 12px;
+        font-size: 1.1rem;
+        background-color: #4caf50;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    .submit-btn:hover {
+        background-color: #45a049;
+    }
+
+    .toggle-text {
+        margin-top: 15px;
+        font-size: 0.9rem;
+        color: #555;
+    }
+
+    .toggle-link {
+        color: #4caf50;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .toggle-link:hover {
+        text-decoration: underline;
+    }
+
+    .message {
+        color: red;
+        font-size: 0.9rem;
+        margin-top: 15px;
+    }
+</style>
+
+@code {
+    private bool isLogin = true;
+    private AuthModel authModel = new();
+    private Supabase.Client supabase;
+    private string message = string.Empty;
+    private bool isLoading = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        supabase = new Supabase.Client(
+            "https://uzvvxayexmusumorxjtx.supabase.co",
+            "Vtb3J4anR4Iiwicm9sZSI6ImFeyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV6dnZ4YXlleG11c3ub24iLCJpYXQiOjE3MzkyNjQyMzMsImV4cCI6MjA1NDg0MDIzM30.lPqH-Xv0BYuAr-KprV-HdbDktFBMcqUv5_ZCuEpxQNU"
+        );
+        await supabase.InitializeAsync();
+    }
+
+    private async Task Authenticate()
+    {
+        isLoading = true;
+        message = string.Empty;
+        StateHasChanged();
+
+        try
+        {
+            if (isLogin)
+            {
+                var response = await supabase.Auth.SignIn(authModel.Email, authModel.Password);
+                if (response?.User != null)
+                {
+                    await LocalStorage.SetItemAsync("userEmail", authModel.Email);
+                    Navigation.NavigateTo("/", forceLoad: true); // Force reload to ensure home page updates
+                }
+                else
+                {
+                    message = "Invalid email or password.";
+                }
+            }
+            else
+            {
+                var response = await supabase.Auth.SignUp(authModel.Email, authModel.Password);
+                if (response?.User != null)
+                {
+                    message = "Sign-up successful! Please log in.";
+                    ToggleMode();
+                }
+                else
+                {
+                    message = "Sign-up failed. Email might already be in use.";
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            message = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void ToggleMode()
+    {
+        isLogin = !isLogin;
+        authModel = new();
+        message = string.Empty;
+    }
+
+    public class AuthModel
+    {
+        public string Email { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+    }
+}

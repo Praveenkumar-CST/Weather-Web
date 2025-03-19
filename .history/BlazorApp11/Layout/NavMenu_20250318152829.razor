@@ -1,0 +1,170 @@
+﻿@implements IDisposable
+
+<div class="toggle-container">
+    <button class="toggle-btn" @onclick="ToggleNavMenu" title="Toggle Menu">
+        <span class="toggle-icon">☰</span>
+    </button>
+</div>
+
+<div class="@NavMenuCssClass sidebar-menu" @onmousedown:stopPropagation="true">
+    <nav class="nav-menu">
+        <div class="nav-item">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <span class="nav-icon">🏠</span> Home
+            </NavLink>
+        </div>
+        <div class="nav-item">
+            <NavLink class="nav-link" href="dashboard">
+                <span class="nav-icon">🗺️</span> Dashboard
+            </NavLink>
+        </div>
+        <div class="nav-item">
+            <NavLink class="nav-link" href="favorites">
+                <span class="nav-icon">❤️</span> Favourites
+            </NavLink>
+        </div>
+        <div class="nav-item">
+            <NavLink class="nav-link" href="history">
+                <span class="nav-icon">⏳</span> History
+            </NavLink>
+        </div>
+    </nav>
+</div>
+
+<style>
+.toggle-container {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 1100;
+}
+
+.toggle-btn {
+    background: rgba(38, 50, 56, 0.9);
+    border: none;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    transition: all 0.3s ease;
+}
+
+.toggle-btn:hover {
+    background: rgba(55, 71, 79, 0.9);
+    transform: scale(1.1);
+}
+
+.toggle-icon {
+    font-size: 1.8rem;
+    color: #ff7043;
+}
+
+.sidebar-menu {
+    background: rgba(28, 37, 38, 0.95);
+    width: 250px;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    padding-top: 80px;
+    box-shadow: 2px 0 12px rgba(0, 0, 0, 0.5);
+    transition: transform 0.3s ease-in-out;
+    z-index: 1000;
+}
+
+.sidebar-menu.collapse {
+    transform: translateX(-100%);
+}
+
+.nav-menu {
+    padding: 20px 0;
+}
+
+.nav-item {
+    margin: 15px 0;
+}
+
+.nav-link {
+    display: flex;
+    align-items: center;
+    padding: 15px 25px;
+    color: #e0e0e0;
+    font-size: 1.1rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.nav-link:hover, .nav-link.active {
+    background: #ff7043;
+    color: #fff;
+    transform: translateX(5px);
+}
+
+.nav-icon {
+    font-size: 1.3rem;
+    margin-right: 15px;
+    color: #ff7043;
+    transition: color 0.3s ease;
+}
+
+.nav-link:hover .nav-icon, .nav-link.active .nav-icon {
+    color: #fff;
+}
+</style>
+
+@code {
+    private bool collapseNavMenu = true;
+    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+
+        if (!collapseNavMenu)
+        {
+            // Subscribe to global click event
+            _ = Task.Run(async () =>
+            {
+                await Task.Delay(50);
+                await InvokeAsync(() => StateHasChanged());
+                _mouseClickHandler += CloseNavMenu;
+            });
+        }
+        else
+        {
+            _mouseClickHandler -= CloseNavMenu;
+        }
+    }
+
+    private void CloseNavMenu()
+    {
+        if (!collapseNavMenu)
+        {
+            collapseNavMenu = true;
+            StateHasChanged();
+        }
+    }
+
+    private event Action? _mouseClickHandler;
+
+    protected override void OnInitialized()
+    {
+        _mouseClickHandler += CloseNavMenu;
+    }
+
+    public void Dispose()
+    {
+        _mouseClickHandler -= CloseNavMenu;
+    }
+
+    [JSInvokable]
+    public void GlobalClickDetected()
+    {
+        _mouseClickHandler?.Invoke();
+    }
+}
